@@ -265,25 +265,49 @@ body {
 .form-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 15px;
+    gap: 20px;
     align-items: end;
+    margin-top: 15px;
 }
 
 input, select {
     width: 100%;
-    padding: 10px;
-    border: 1px solid var(--border);
-    border-radius: 6px;
+    padding: 12px 16px;
+    border: 1.5px solid #dcdfe6;
+    border-radius: 8px;
     box-sizing: border-box;
     font-family: inherit;
+    font-size: 0.95rem;
+    background-color: #f8f9fa;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+input:focus, select:focus {
+    border-color: var(--primary);
+    background-color: #ffffff;
+    box-shadow: 0 0 0 4px rgba(13, 110, 253, 0.15);
+    outline: none;
+}
+
+select {
+    appearance: none;
+    -webkit-appearance: none;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23555' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+    background-size: 14px;
+    padding-right: 36px;
+    cursor: pointer;
 }
 
 .date-group label {
     display: block;
-    font-size: 0.85rem;
-    color: #666;
-    margin-bottom: 4px;
-    font-weight: 600;
+    font-size: 0.8rem;
+    color: #555;
+    margin-bottom: 6px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
 .form-actions {
@@ -1353,11 +1377,11 @@ document.addEventListener("DOMContentLoaded", async function() {
     const dbStatusBadge = document.getElementById('db-status-badge');
     if (dbStatusBadge) {
         if (db) {
-            dbStatusBadge.innerHTML = '<span style="width: 8px; height: 8px; background: #198754; border-radius: 50%;"></span> Cloud Sync Active';
+            dbStatusBadge.innerHTML = '<span style="width: 8px; height: 8px; background: #198754; border-radius: 50%; box-shadow: 0 0 0 3px rgba(25,135,84,0.2);"></span> Live Tracking Active';
             dbStatusBadge.style.background = 'rgba(25, 135, 84, 0.1)';
             dbStatusBadge.style.color = '#198754';
         } else {
-            dbStatusBadge.innerHTML = '<span style="width: 8px; height: 8px; background: #ffc107; border-radius: 50%;"></span> Demo Mode (Local Storage)';
+            dbStatusBadge.innerHTML = '<span style="width: 8px; height: 8px; background: #ffc107; border-radius: 50%; box-shadow: 0 0 0 3px rgba(255,193,7,0.2);"></span> Demo Mode (Local)';
             dbStatusBadge.style.background = 'rgba(255, 193, 7, 0.1)';
             dbStatusBadge.style.color = '#b58100';
         }
