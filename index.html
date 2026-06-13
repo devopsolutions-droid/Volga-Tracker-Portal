@@ -333,13 +333,14 @@
             if (db) {
                 try {
                     const snapshot = await db.collection('users').get();
-                    return snapshot.docs.map(doc => doc.id);
+                    return snapshot.docs.map(doc => ({ id: doc.id, displayName: doc.data().displayName || doc.id }));
                 } catch (e) {
                     console.error("Firestore read failed, falling back to LocalStorage:", e);
                 }
             }
             const storedUsers = localStorage.getItem('engineTrackerUsers');
-            return storedUsers ? JSON.parse(storedUsers) : ["Alice Johnson", "Bob Smith", "Carol Williams"];
+            const raw = storedUsers ? JSON.parse(storedUsers) : [];
+            return raw.map(u => typeof u === 'string' ? { id: u, displayName: u } : u);
         }
     };
 
@@ -388,13 +389,15 @@
                 errorEl.style.display = 'block';
             }
         } else {
-            // General User Login
+            // General User Login — match against private User ID
             try {
                 const authUsers = await dbHelper.getUsers();
-                if (authUsers.includes(userid)) {
+                const match = authUsers.find(u => u.id === userid);
+                if (match) {
                     sessionStorage.setItem('loggedIn', 'true');
                     sessionStorage.setItem('role', 'user');
-                    sessionStorage.setItem('username', userid);
+                    // Store the Display Name (not the User ID) for use in the tracker
+                    sessionStorage.setItem('username', match.displayName);
                     window.location.href = 'Engine_VR_Project_Tracker_Webpage.html';
                 } else {
                     errorEl.innerText = "Invalid User ID. Please contact an Admin.";

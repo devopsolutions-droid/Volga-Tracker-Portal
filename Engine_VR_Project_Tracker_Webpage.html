@@ -988,9 +988,10 @@ details .table-responsive {
             <span id="user-mgmt-toggle-icon" style="font-size: 0.9rem; transition: transform 0.2s;">▼</span>
         </h2>
         <div id="user-management-container">
-            <p style="font-size: 0.9rem; color: #666; margin-top: -10px; margin-bottom: 15px;">Create and manage User IDs that are allowed to log in.</p>
+            <p style="font-size: 0.9rem; color: #666; margin-top: -10px; margin-bottom: 15px;">The <strong>User ID</strong> is private (used to log in). The <strong>Display Name</strong> is what appears publicly in the tracker.</p>
             <div class="admin-create-row">
-                <input type="text" id="new-auth-user" placeholder="New User ID...">
+                <input type="text" id="new-auth-user" placeholder="User ID (private login)...">
+                <input type="text" id="new-auth-display" placeholder="Display Name (shown in tracker)...">
                 <button onclick="addAuthUser()" class="btn-admin-create">Create Login User</button>
             </div>
             <div id="auth-users-grid" class="user-grid"></div>
@@ -1152,42 +1153,44 @@ const dbHelper = {
         if (db) {
             try {
                 const snapshot = await db.collection('users').get();
-                return snapshot.docs.map(doc => doc.id);
+                // Return objects: { id (private login), displayName (public) }
+                return snapshot.docs.map(doc => ({ id: doc.id, displayName: doc.data().displayName || doc.id }));
             } catch (e) {
                 console.error("Firestore read users failed, falling back to LocalStorage:", e);
             }
         }
         const storedUsers = localStorage.getItem('engineTrackerUsers');
-        return storedUsers ? JSON.parse(storedUsers) : ["Alice Johnson", "Bob Smith", "Carol Williams"];
+        const ids = storedUsers ? JSON.parse(storedUsers) : ["alice", "bob", "carol"];
+        return ids.map(u => typeof u === 'string' ? { id: u, displayName: u } : u);
     },
 
-    async addUser(username) {
+    async addUser(userId, displayName) {
         if (db) {
             try {
-                await db.collection('users').doc(username).set({ createdAt: new Date().toISOString() });
+                await db.collection('users').doc(userId).set({ displayName: displayName, createdAt: new Date().toISOString() });
                 return;
             } catch (e) {
                 console.error("Firestore add user failed, falling back to LocalStorage:", e);
             }
         }
         const users = await this.getUsers();
-        if (!users.includes(username)) {
-            users.push(username);
+        if (!users.find(u => u.id === userId)) {
+            users.push({ id: userId, displayName: displayName });
             localStorage.setItem('engineTrackerUsers', JSON.stringify(users));
         }
     },
 
-    async removeUser(username) {
+    async removeUser(userId) {
         if (db) {
             try {
-                await db.collection('users').doc(username).delete();
+                await db.collection('users').doc(userId).delete();
                 return;
             } catch (e) {
                 console.error("Firestore remove user failed, falling back to LocalStorage:", e);
             }
         }
         let users = await this.getUsers();
-        users = users.filter(u => u !== username);
+        users = users.filter(u => u.id !== userId);
         localStorage.setItem('engineTrackerUsers', JSON.stringify(users));
     },
 
@@ -1341,8 +1344,11 @@ function renderAuthUsers() {
         authUsers.forEach(u => {
             grid.innerHTML += `
                 <div class="user-desk">
-                    <span class="user-desk-name" title="${u}">${u}</span>
-                    <button class="btn-revoke-desk" onclick="removeAuthUser('${u}')" title="Revoke access">&times;</button>
+                    <div style="display:flex; flex-direction:column; overflow:hidden; margin-right:10px;">
+                        <span class="user-desk-name" title="${u.id}"><strong>${u.displayName}</strong></span>
+                        <span style="font-size:0.75rem; color:#999; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">ID: ${u.id}</span>
+                    </div>
+                    <button class="btn-revoke-desk" onclick="removeAuthUser('${u.id}')" title="Revoke access">&times;</button>
                 </div>`;
         });
     }
@@ -1353,31 +1359,38 @@ async function addAuthUser() {
         alert("Only admins can manage users.");
         return;
     }
-    const newUser = document.getElementById('new-auth-user').value.trim();
-    if (!newUser) return;
-    if (authUsers.includes(newUser)) {
-        alert("User already exists!");
+    const newUserId = document.getElementById('new-auth-user').value.trim();
+    const newDisplayName = document.getElementById('new-auth-display').value.trim();
+    if (!newUserId || !newDisplayName) {
+        alert("Please enter both a User ID and a Display Name.");
         return;
     }
-    await dbHelper.addUser(newUser);
+    if (authUsers.find(u => u.id === newUserId)) {
+        alert("A user with that User ID already exists!");
+        return;
+    }
+    await dbHelper.addUser(newUserId, newDisplayName);
     document.getElementById('new-auth-user').value = "";
+    document.getElementById('new-auth-display').value = "";
     authUsers = await dbHelper.getUsers();
     renderAuthUsers();
     updateUserList();
 }
 
-async function removeAuthUser(user) {
+async function removeAuthUser(userId) {
     if (userRole !== 'admin') {
         alert("Only admins can manage users.");
         return;
     }
+    const user = authUsers.find(u => u.id === userId);
+    const label = user ? user.displayName : userId;
     const confirmed = await showCustomConfirm(
         "Revoke User Login",
-        `You are about to revoke dashboard access for the user <strong style="color: var(--dark); font-weight: 700;">${user}</strong>.`,
+        `You are about to revoke dashboard access for <strong style="color: var(--dark); font-weight: 700;">${label}</strong>.`,
         false
     );
     if (confirmed) {
-        await dbHelper.removeUser(user);
+        await dbHelper.removeUser(userId);
         authUsers = await dbHelper.getUsers();
         renderAuthUsers();
         updateUserList();
@@ -1400,13 +1413,13 @@ function updateDashboard(filteredData) {
     document.getElementById('stat-blocked').innerText = filteredData.filter(d => d.status === 'Blocked').length;
 }
 
-// Update User Select Dropdown
+// Update User Select Dropdown — shows Display Names, value = displayName (used in records)
 function updateUserList() {
     const select = document.getElementById('existing-user');
     const currentVal = select ? select.value : "";
     if (select) {
-        select.innerHTML = '<option value="">Select a user...</option>' + authUsers.map(u => `<option value="${u}">${u}</option>`).join('');
-        if (authUsers.includes(currentVal)) select.value = currentVal;
+        select.innerHTML = '<option value="">Select a user...</option>' + authUsers.map(u => `<option value="${u.displayName}">${u.displayName}</option>`).join('');
+        if (authUsers.find(u => u.displayName === currentVal)) select.value = currentVal;
     }
 }
 
