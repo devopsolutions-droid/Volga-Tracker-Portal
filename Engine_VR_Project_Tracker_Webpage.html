@@ -1071,9 +1071,9 @@ details .table-responsive {
                     <tr>
                         <th>Assigned User</th>
                         <th>Engine Name</th>
-                        <th>Date Assigned</th>
+                        <th>Assigned</th>
                         <th>Target Date</th>
-                        <th>Completion Date</th>
+                        <th>Completed</th>
                         <th>Status</th>
                         <th>Remarks</th>
                         <th>Drive Link</th>
@@ -1466,7 +1466,8 @@ function formatDate(dateStr) {
 function getTableAvatar(name) {
     const firstWord = name ? name.split(' ')[0] : '';
     const initial = firstWord ? firstWord.charAt(0).toUpperCase() : 'U';
-    const colors = ['#9b59b6', '#3498db', '#e67e22', '#1abc9c', '#e74c3c', '#34495e'];
+    // Vibrant, modern colors: Indigo, Pink, Amber, Emerald, Red, Violet, Teal, Rose
+    const colors = ['#6366f1', '#ec4899', '#f59e0b', '#10b981', '#ef4444', '#8b5cf6', '#14b8a6', '#f43f5e'];
     const color = colors[initial.charCodeAt(0) % colors.length];
     return `<div style="display: flex; align-items: center;"><span style="display:flex; align-items:center; justify-content:center; width:26px; height:26px; border-radius:50%; background:${color}; color:white; font-size:0.8rem; font-weight:bold; margin-right:8px;">${initial}</span><span>${firstWord}</span></div>`;
 }
@@ -1657,9 +1658,9 @@ function render() {
                 <table>
                     <tr>
                         <th>Engine Name</th>
-                        <th>Date Assigned</th>
+                        <th>Assigned</th>
                         <th>Target Date</th>
-                        <th>Completion Date</th>
+                        <th>Completed</th>
                         <th>Status</th>
                         <th>Remarks</th>
                         <th>Drive Link</th>
