@@ -1357,9 +1357,14 @@ async function deleteRecord(id) {
         alert("Only admins can delete records.");
         return;
     }
+    const record = data.find(d => d.id === id);
+    const message = record 
+        ? `Are you sure you want to delete the assignment of "${record.engine}" for "${record.user}"? This action cannot be undone.`
+        : "Are you sure you want to delete this engine assignment? This action cannot be undone.";
+
     const confirmed = await showCustomConfirm(
         "Delete Assignment",
-        "Are you sure you want to delete this engine assignment? This action cannot be undone."
+        message
     );
     if (confirmed) {
         await dbHelper.deleteRecord(id);
