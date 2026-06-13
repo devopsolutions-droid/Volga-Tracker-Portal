@@ -553,19 +553,16 @@ summary::-webkit-details-marker {
 }
 
 .user-avatar-sm {
-    width: 34px;
-    height: 34px;
+    width: 30px;
+    height: 30px;
     border-radius: 50%;
     background: rgba(255,255,255,0.15);
-    border: 2px solid rgba(255,255,255,0.35);
+    border: 1.5px solid rgba(255,255,255,0.3);
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 0.85rem;
-    font-weight: 800;
-    text-transform: uppercase;
     flex-shrink: 0;
-    letter-spacing: 0;
+    color: rgba(255,255,255,0.9);
 }
 
 .summary-right {
@@ -1556,12 +1553,16 @@ function render() {
         const completedCount = userEngines.filter(e => e.status === 'Completed').length;
         const totalCount = userEngines.length;
 
-        const initials = user.split(' ').map(w => w[0]).slice(0,2).join('');
         const allDone = completedCount === totalCount;
         html += `<details>
             <summary>
                 <span class="summary-left">
-                    <span class="user-avatar-sm">${initials}</span>
+                    <span class="user-avatar-sm">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                            <circle cx="12" cy="7" r="4"/>
+                        </svg>
+                    </span>
                     <span>${user}</span>
                 </span>
                 <span class="summary-right">
