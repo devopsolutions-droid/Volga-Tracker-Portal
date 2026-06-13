@@ -244,14 +244,95 @@
             padding: 10px 12px;
             font-size: 0.9rem;
         }
+        .error-message {
+            margin-top: -8px;
+            margin-bottom: 12px;
+        }
         .btn-login {
             padding: 12px;
             font-size: 0.95rem;
         }
     }
+
+    /* Loader Overlay */
+    .loader-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        z-index: 9999;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 0.4s ease, visibility 0.4s ease;
+    }
+
+    .loader-overlay.active {
+        opacity: 1;
+        visibility: visible;
+    }
+
+    .loader-content {
+        text-align: center;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .loader-spinner {
+        animation: spin-pulse 2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+        margin-bottom: 20px;
+    }
+
+    @keyframes spin-pulse {
+        0% { transform: scale(0.9) rotate(0deg); opacity: 0.7; }
+        50% { transform: scale(1.1) rotate(180deg); opacity: 1; }
+        100% { transform: scale(0.9) rotate(360deg); opacity: 0.7; }
+    }
+
+    .loader-content h2 {
+        color: var(--dark);
+        margin: 0 0 8px 0;
+        font-size: 1.5rem;
+        font-weight: 800;
+        letter-spacing: 0.5px;
+    }
+
+    .loader-content p {
+        color: #666;
+        margin: 0;
+        font-size: 0.95rem;
+        font-weight: 500;
+    }
 </style>
 </head>
 <body>
+
+<!-- Loader Screen -->
+<div id="loader-overlay" class="loader-overlay">
+    <div class="loader-content">
+        <div class="loader-spinner">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                    <linearGradient id="loader-grad" x1="0" y1="0" x2="1" y2="1">
+                        <stop offset="0%" stop-color="#F05A28"/>
+                        <stop offset="100%" stop-color="#F39C12"/>
+                    </linearGradient>
+                </defs>
+                <path d="M12 2L20.7 7V17L12 22L3.3 17V7L12 2Z" stroke="#0B3A5E" stroke-width="2.5" stroke-linejoin="round" fill="none"/>
+                <path d="M12 6L17 9.5V14.5L12 18L7 14.5V9.5L12 6Z" fill="url(#loader-grad)"/>
+            </svg>
+        </div>
+        <h2 id="loader-text">Authenticating...</h2>
+        <p>Preparing your workspace</p>
+    </div>
+</div>
 
 <div class="login-box">
     <div class="login-header">
@@ -388,7 +469,10 @@
                 sessionStorage.setItem('loggedIn', 'true');
                 sessionStorage.setItem('role', 'admin');
                 sessionStorage.setItem('username', userid);
-                window.location.href = 'Engine_VR_Project_Tracker_Webpage.html';
+                
+                showLoader(() => {
+                    window.location.href = 'Engine_VR_Project_Tracker_Webpage.html';
+                });
             } else {
                 errorEl.innerText = "Invalid Admin Credentials";
                 errorEl.style.display = 'block';
@@ -403,7 +487,10 @@
                     sessionStorage.setItem('role', 'user');
                     // Store the Display Name (not the User ID) for use in the tracker
                     sessionStorage.setItem('username', match.displayName);
-                    window.location.href = 'Engine_VR_Project_Tracker_Webpage.html';
+                    
+                    showLoader(() => {
+                        window.location.href = 'Engine_VR_Project_Tracker_Webpage.html';
+                    });
                 } else {
                     errorEl.innerText = "Invalid User ID. Please contact an Admin.";
                     errorEl.style.display = 'block';
@@ -414,6 +501,21 @@
                 errorEl.style.display = 'block';
             }
         }
+    }
+
+    function showLoader(callback) {
+        const overlay = document.getElementById('loader-overlay');
+        overlay.classList.add('active');
+        
+        // Dynamic text change for a premium feel
+        setTimeout(() => {
+            document.getElementById('loader-text').innerText = "Loading workspace...";
+        }, 800);
+
+        // Redirect after delay
+        setTimeout(() => {
+            callback();
+        }, 1500);
     }
 
     // Allow pressing Enter to login
