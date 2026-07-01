@@ -248,60 +248,71 @@ body {
 /* ── Admin Grid ──────────────────────────────────────────────────────────── */
 .admin-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 16px;
+    grid-template-columns: 1fr;   /* full-width stacked */
+    gap: 14px;
     margin-bottom: 40px;
     align-items: start;
 }
 
-/* ── Admin Action Card (horizontal compact style) ────────────────────────── */
+/* ── Admin Action Card ───────────────────────────────────────────────────── */
 .admin-action-card {
     background: #fff;
     border-radius: 14px;
     border: 1px solid var(--border);
     overflow: hidden;
+    box-shadow: var(--shadow-sm);
 }
 .admin-action-card.blue-border   { border-left: 4px solid #3b82f6; }
 .admin-action-card.purple-border { border-left: 4px solid #8b5cf6; }
 
 .admin-card-header {
     display: flex; align-items: center; gap: 14px;
-    padding: 20px 20px 20px 20px;
+    padding: 18px 20px;
     cursor: pointer; user-select: none;
     transition: background 0.15s;
 }
 .admin-card-header:hover { background: #f8fafc; }
 
 .admin-card-icon {
-    width: 46px; height: 46px; border-radius: 12px;
+    width: 44px; height: 44px; border-radius: 12px;
     flex-shrink: 0; display: flex; align-items: center; justify-content: center;
+    transition: background 0.2s;
 }
 .admin-card-icon.blue   { background: rgba(59,130,246,0.1); color: #3b82f6; }
 .admin-card-icon.purple { background: rgba(139,92,246,0.1); color: #8b5cf6; }
+.admin-action-card:hover .admin-card-icon.blue   { background: rgba(59,130,246,0.18); }
+.admin-action-card:hover .admin-card-icon.purple { background: rgba(139,92,246,0.18); }
 
 .admin-card-text { flex: 1; min-width: 0; }
-.admin-card-title { font-size: 0.95rem; font-weight: 700; margin: 0 0 3px; }
+
+/* Title row: title + count badge side by side */
+.admin-card-title-row {
+    display: flex; align-items: center; gap: 8px; margin-bottom: 3px;
+}
+.admin-card-title { font-size: 0.95rem; font-weight: 700; margin: 0; }
 .admin-card-title.blue   { color: #2563eb; }
 .admin-card-title.purple { color: #7c3aed; }
 .admin-card-subtitle { font-size: 0.8rem; color: #94a3b8; margin: 0; font-weight: 500; }
 
-.admin-card-action { flex-shrink: 0; display: flex; align-items: center; gap: 8px; }
-
-.action-circle-btn {
-    width: 36px; height: 36px; border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    border: none; cursor: pointer; transition: all 0.2s; font-size: 1.1rem; font-weight: 700;
-}
-.action-circle-btn.blue   { background: #3b82f6; color: white; }
-.action-circle-btn.blue:hover   { background: #2563eb; transform: scale(1.06); }
-.action-circle-btn.purple { background: transparent; color: #7c3aed; border: 1.5px solid #e2e8f0; }
-.action-circle-btn.purple:hover { background: rgba(139,92,246,0.1); border-color: #8b5cf6; }
-
+/* Count badge — now lives beside the title */
 .users-count-badge {
-    padding: 5px 12px; background: #f1f5f9;
-    border-radius: 20px; font-size: 0.78rem; font-weight: 700; color: #475569;
-    white-space: nowrap;
+    padding: 2px 9px;
+    background: rgba(139,92,246,0.1);
+    border-radius: 20px;
+    font-size: 0.72rem; font-weight: 700; color: #7c3aed;
+    white-space: nowrap; flex-shrink: 0;
 }
+
+/* Chevron replaces the old circle button */
+.admin-card-chevron {
+    flex-shrink: 0;
+    width: 18px; height: 18px;
+    color: #94a3b8;
+    transition: transform 0.22s ease, color 0.15s;
+    margin-left: auto;
+}
+.admin-action-card:hover .admin-card-chevron { color: #64748b; }
+.admin-card-chevron.rotated { transform: rotate(90deg); }
 
 /* Admin card body (expandable) */
 .admin-card-body {
@@ -481,39 +492,6 @@ footer {
 .drawer-overlay.active {
     opacity: 1;
     visibility: visible;
-}
-
-/* Toggle Trigger Tab */
-.drawer-toggle-btn {
-    position: fixed;
-    left: 0;
-    top: 150px;
-    z-index: 1000;
-    background: var(--dark);
-    color: #ffffff;
-    border: none;
-    border-radius: 0 10px 10px 0;
-    padding: 14px 10px;
-    cursor: pointer;
-    box-shadow: 2px 2px 8px rgba(0,0,0,0.15);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 8px;
-    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-    font-weight: 700;
-    font-size: 0.72rem;
-    letter-spacing: 1px;
-    text-transform: uppercase;
-    writing-mode: vertical-lr;
-    text-orientation: mixed;
-}
-.drawer-toggle-btn:hover {
-    padding-left: 14px;
-    background: var(--primary);
-}
-.drawer-toggle-btn.drawer-open {
-    left: 400px;
 }
 
 /* Header inside drawer */
@@ -753,9 +731,223 @@ footer {
     margin-top: 2px;
 }
 
+/* ── Download Summary Accordion (inside drawer) ──────────────────────────── */
+.dl-accordion-toggle {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    padding: 12px 12px;
+    border-radius: 9px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    color: #1e293b;
+    font-size: 0.95rem;
+    font-weight: 600;
+    font-family: inherit;
+    text-align: left;
+    transition: background 0.15s, color 0.15s;
+    position: relative;
+}
+.dl-accordion-toggle:hover { background: #f1f5f9; color: #1e293b; }
+.dl-accordion-toggle.open  { background: #f1f5f9; color: #1e293b; }
+.dl-accordion-icon {
+    width: 32px; height: 32px;
+    border-radius: 8px;
+    background: rgba(16,185,129,0.10);
+    color: #10b981;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+}
+.dl-accordion-chev {
+    margin-left: auto;
+    width: 15px; height: 15px;
+    transition: transform 0.22s ease;
+    opacity: 0.55;
+    flex-shrink: 0;
+}
+.dl-accordion-toggle.open .dl-accordion-chev { transform: rotate(90deg); }
+
+/* Sliding panel */
+.dl-accordion-panel {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.28s ease;
+}
+
+/* Subgroup box */
+.dl-subgroup {
+    margin: 4px 0 8px 0;
+    background: #f8fafc;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+}
+.dl-subgroup-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    padding: 11px 13px;
+    background: #f1f5f9;
+    border: none;
+    color: var(--dark);
+    font-size: 0.85rem;
+    font-weight: 700;
+    letter-spacing: 0.1px;
+    cursor: pointer;
+    font-family: inherit;
+    text-align: left;
+    transition: background 0.15s;
+}
+.dl-subgroup-header:hover { background: #e8edf5; }
+.dl-subgroup-chev {
+    margin-left: auto;
+    width: 13px; height: 13px;
+    transition: transform 0.2s ease;
+    opacity: 0.65;
+}
+.dl-subgroup-header[aria-expanded="true"] .dl-subgroup-chev { transform: rotate(90deg); }
+.dl-subpanel {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.25s ease;
+}
+
+/* "Download All" row inside subgroup */
+.dl-all-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 13px;
+    border-bottom: 1px dashed var(--border);
+    background: rgba(16,185,129,0.05);
+}
+.dl-all-label { flex: 1; font-size: 0.82rem; font-weight: 700; color: var(--dark); line-height: 1.3; }
+.dl-all-label span { display: block; font-size: 0.73rem; font-weight: 400; color: var(--text-muted); margin-top: 2px; }
+
+/* Per-item row */
+.dl-item-row {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    padding: 9px 13px;
+    border-bottom: 1px solid var(--border);
+}
+.dl-item-row:last-child { border-bottom: none; }
+.dl-swatch {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+.dl-item-name { flex: 1; font-size: 0.85rem; color: var(--text-main); line-height: 1.3; font-weight: 500; }
+.dl-item-meta { display: block; font-size: 0.73rem; color: var(--text-muted); margin-top: 2px; font-weight: 400; }
+
+/* Download icon button */
+.dl-icon-btn {
+    flex-shrink: 0;
+    width: 28px; height: 28px;
+    border-radius: 7px;
+    background: #e2e8f0;
+    border: 1px solid var(--border);
+    color: var(--dark);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    transition: background 0.15s, transform 0.1s, border-color 0.15s;
+    padding: 0;
+}
+.dl-icon-btn:hover { background: #10b981; border-color: #10b981; color: #fff; }
+.dl-icon-btn:active { transform: scale(0.91); }
+
+/* "All" wide button */
+.dl-all-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    height: 30px;
+    padding: 0 13px;
+    border-radius: 7px;
+    background: #10b981;
+    border: 1px solid #10b981;
+    color: #fff;
+    font-size: 0.78rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.15s;
+    white-space: nowrap;
+    font-family: inherit;
+}
+.dl-all-btn:hover { background: #059669; border-color: #059669; }
+
+/* Split CSV / PDF button group */
+.dl-btn-group {
+    display: flex;
+    gap: 4px;
+    flex-shrink: 0;
+}
+.dl-split-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    height: 26px;
+    padding: 0 8px;
+    border-radius: 6px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    cursor: pointer;
+    border: 1px solid transparent;
+    font-family: inherit;
+    white-space: nowrap;
+    transition: background 0.15s, transform 0.1s;
+}
+.dl-split-btn:active { transform: scale(0.93); }
+.dl-split-btn.csv {
+    background: #e2e8f0;
+    border-color: var(--border);
+    color: #334155;
+}
+.dl-split-btn.csv:hover { background: #10b981; border-color: #10b981; color: #fff; }
+.dl-split-btn.pdf {
+    background: rgba(239,68,68,0.08);
+    border-color: rgba(239,68,68,0.2);
+    color: #dc2626;
+}
+.dl-split-btn.pdf:hover { background: #ef4444; border-color: #ef4444; color: #fff; }
+
+/* Split "All" row buttons */
+.dl-all-btn-group {
+    display: flex;
+    gap: 5px;
+    flex-shrink: 0;
+}
+.dl-all-split {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    height: 28px;
+    padding: 0 10px;
+    border-radius: 6px;
+    font-size: 0.73rem;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: inherit;
+    white-space: nowrap;
+    transition: background 0.15s;
+    border: 1px solid transparent;
+}
+.dl-all-split.csv {
+    background: #10b981; border-color: #10b981; color: #fff;
+}
+.dl-all-split.csv:hover { background: #059669; }
+.dl-all-split.pdf {
+    background: rgba(239,68,68,0.1); border-color: rgba(239,68,68,0.3); color: #dc2626;
+}
+.dl-all-split.pdf:hover { background: #ef4444; border-color: #ef4444; color: #fff; }
+
 /* ── Responsive ──────────────────────────────────────────────────────────── */
 @media (max-width: 992px) {
-    .admin-grid { grid-template-columns: 1fr; }
+    /* admin-grid is already 1 col, no change needed */
 }
 @media (max-width: 768px) {
     .page-wrapper { padding: 14px 14px 32px; }
@@ -772,18 +964,104 @@ footer {
     .admin-create-row { flex-direction: column; }
     .admin-card-header { flex-wrap: wrap; }
 }
+
+/* ── Drawer section label ────────────────────────────────────────────────── */
+.drawer-section-label {
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.9px;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    padding: 0 4px 6px;
+    margin-bottom: 4px;
+    border-bottom: 1px solid var(--border);
+}
+
+/* ── Drawer announcement toggle button ──────────────────────────────────── */
+.drawer-announce-toggle {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    padding: 12px 12px;
+    border-radius: 9px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    color: #1e293b;
+    font-size: 0.95rem;
+    font-weight: 600;
+    font-family: inherit;
+    text-align: left;
+    transition: background 0.15s, color 0.15s;
+}
+.drawer-announce-toggle:hover { background: #eff6ff; color: #1e293b; }
+.drawer-announce-toggle.open  { background: #eff6ff; color: #1d4ed8; }
+.drawer-announce-icon {
+    width: 30px; height: 30px;
+    border-radius: 8px;
+    background: rgba(59,130,246,0.10);
+    color: #3b82f6;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    transition: background 0.15s;
+}
+.drawer-announce-toggle.open .drawer-announce-icon,
+.drawer-announce-toggle:hover .drawer-announce-icon {
+    background: rgba(59,130,246,0.18);
+}
+.drawer-announce-chev {
+    margin-left: auto;
+    width: 14px; height: 14px;
+    transition: transform 0.22s ease;
+    opacity: 0.5;
+    flex-shrink: 0;
+}
+.drawer-announce-toggle.open .drawer-announce-chev { transform: rotate(90deg); }
+
+/* ── Navbar Drawer Toggle Button (Hamburger) ────────────────────── */
+.navbar-drawer-btn {
+    display: inline-flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 5px;
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    background: transparent;
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background 0.2s, border-color 0.2s, transform 0.15s;
+    flex-shrink: 0;
+}
+.navbar-drawer-btn:hover {
+    background: #f1f5f9;
+    border-color: var(--primary);
+    transform: scale(1.06);
+}
+.navbar-drawer-btn.active {
+    background: var(--dark);
+    border-color: var(--dark);
+}
+.navbar-drawer-btn.active .hamburger-bar {
+    background: #ffffff;
+}
+.hamburger-bar {
+    display: block;
+    width: 18px;
+    height: 2.5px;
+    background: var(--dark);
+    border-radius: 99px;
+    transition: background 0.2s;
+}
 </style>
 </head>
 <body>
 
 <!-- ── Admin collapsible Left Drawer & Overlay ── -->
 <div class="drawer-overlay" id="drawer-overlay" onclick="toggleAdminDrawer()"></div>
-<button class="drawer-toggle-btn" id="drawer-toggle-btn" onclick="toggleAdminDrawer()">
-    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="transform: rotate(-90deg); margin-bottom: 2px;">
-        <polyline points="18 15 12 9 6 15"></polyline>
-    </svg>
-    <span>Announcements</span>
-</button>
 
 <div class="admin-drawer" id="admin-drawer">
     <div class="drawer-header">
@@ -798,26 +1076,118 @@ footer {
         <button class="drawer-close" onclick="toggleAdminDrawer()">&times;</button>
     </div>
 
-    <div class="drawer-content" style="padding-top: 20px;">
-        <!-- Admin Quick Actions inside Sidebar Drawer -->
-        <div id="admin-drawer-actions" style="display: none; flex-direction: column; gap: 10px; margin-bottom: 20px;">
-            <button class="btn-create-project" style="margin: 0; background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; display: inline-flex; align-items: center; justify-content: center; gap: 8px; font-weight: 700; height: 44px; border-radius: 10px; border: none; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.transform='translateY(-1px)';" onmouseout="this.style.transform='none';" onclick="toggleBroadcastEditor()">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
-                    <line x1="12" y1="9" x2="12" y2="13"></line>
-                    <line x1="12" y1="17" x2="12.01" y2="17"></line>
-                </svg>
+    <div class="drawer-content" style="padding-top: 16px;">
+
+        <!-- ── SECTION 1: ADMIN ACTIONS (admin only) ── -->
+        <div id="admin-drawer-actions" style="display: none; flex-direction: column; gap: 2px; margin-bottom: 0;">
+
+            <div class="drawer-section-label">Admin Actions</div>
+
+            <!-- Create Announcement toggle -->
+            <button class="drawer-announce-toggle" id="announce-toggle-btn" onclick="toggleBroadcastEditor()">
+                <span class="drawer-announce-icon">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                        <line x1="12" y1="9" x2="12" y2="13"/>
+                        <line x1="12" y1="17" x2="12.01" y2="17"/>
+                    </svg>
+                </span>
                 Create Announcement
-            </button>
-            <button class="btn-create-project" style="margin: 0; background: linear-gradient(135deg, #10b981, #059669); color: white; display: inline-flex; align-items: center; justify-content: center; gap: 8px; font-weight: 700; height: 44px; border-radius: 10px; border: none; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.transform='translateY(-1px)';" onmouseout="this.style.transform='none';" onclick="downloadPortalSummary()">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                    <polyline points="7 10 12 15 17 10"></polyline>
-                    <line x1="12" y1="15" x2="12" y2="3"></line>
+                <svg class="drawer-announce-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="m9 6 6 6-6 6"/>
                 </svg>
-                Download Summary
             </button>
+
         </div>
+
+        <!-- ── SECTION 2: DOWNLOAD SUMMARY (admin only, standalone) ── -->
+        <div id="admin-download-section" style="display: none; flex-direction: column; gap: 2px; margin-bottom: 0;">
+
+            <!-- Download Summary accordion toggle -->
+            <button class="dl-accordion-toggle" id="dl-accordion-toggle" onclick="toggleDlAccordion()">
+                <span class="dl-accordion-icon">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/>
+                    </svg>
+                </span>
+                Download Summary
+                <svg class="dl-accordion-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="m9 6 6 6-6 6"/>
+                </svg>
+            </button>
+
+            <!-- Panel lives outside any overflow-clipping container -->
+            <div class="dl-accordion-panel" id="dl-accordion-panel">
+
+                <!-- Project-wise subgroup -->
+                <div class="dl-subgroup">
+                    <button class="dl-subgroup-header" id="dl-proj-toggle" aria-expanded="false" onclick="toggleDlSubgroup('dl-proj-toggle','dl-proj-panel')">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21 8V7l-3-4H6L3 7v1"/><path d="M3 8h18l-1.5 12.5A2 2 0 0 1 17.5 22h-11a2 2 0 0 1-2-1.5L3 8Z"/>
+                        </svg>
+                        Project-wise
+                        <svg class="dl-subgroup-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="m9 6 6 6-6 6"/>
+                        </svg>
+                    </button>
+                    <div class="dl-subpanel" id="dl-proj-panel">
+                        <div class="dl-all-row">
+                            <div class="dl-all-label">
+                                Complete Summary
+                                <span>All projects, one file</span>
+                            </div>
+                            <div class="dl-all-btn-group">
+                                <button class="dl-all-split csv" onclick="downloadAllProjectsCSV()">
+                                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg>CSV
+                                </button>
+                                <button class="dl-all-split pdf" onclick="downloadAllProjectsPDF()">
+                                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>PDF
+                                </button>
+                            </div>
+                        </div>
+                        <div id="dl-project-list"></div>
+                    </div>
+                </div>
+
+                <!-- User-wise subgroup -->
+                <div class="dl-subgroup">
+                    <button class="dl-subgroup-header" id="dl-user-toggle" aria-expanded="false" onclick="toggleDlSubgroup('dl-user-toggle','dl-user-panel')">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="9" cy="7" r="4"/><path d="M2 21v-2a5 5 0 0 1 5-5h4a5 5 0 0 1 5 5v2"/>
+                        </svg>
+                        User-wise
+                        <svg class="dl-subgroup-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="m9 6 6 6-6 6"/>
+                        </svg>
+                    </button>
+                    <div class="dl-subpanel" id="dl-user-panel">
+                        <div class="dl-all-row">
+                            <div class="dl-all-label">
+                                All Users Summary
+                                <span>Every user, one file</span>
+                            </div>
+                            <div class="dl-all-btn-group">
+                                <button class="dl-all-split csv" onclick="downloadAllUsersCSV()">
+                                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg>CSV
+                                </button>
+                                <button class="dl-all-split pdf" onclick="downloadAllUsersPDF()">
+                                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>PDF
+                                </button>
+                            </div>
+                        </div>
+                        <div id="dl-user-list"></div>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- divider between admin sections and announcements (admin only) -->
+        <div id="admin-announcements-divider" style="display: none; height: 1px; background: var(--border); margin: 14px 4px;"></div>
+
+        <!-- ── SECTION 3: ANNOUNCEMENTS ── -->
+        <div class="drawer-section-label" id="announcements-section-label">Announcements</div>
 
         <div class="drawer-card">
             <div class="drawer-card-title">Current Announcement</div>
@@ -835,6 +1205,7 @@ footer {
                 </div>
             </div>
         </div>
+
     </div>
 </div>
 
@@ -854,25 +1225,33 @@ footer {
 
 <!-- ── Navbar ───────────────────────────────────────────────────────────── -->
 <nav class="navbar">
+    <!-- Hamburger toggle — left side -->
+    <button class="navbar-drawer-btn" id="drawer-toggle-btn" onclick="toggleAdminDrawer()" title="Open Panel">
+        <span class="hamburger-bar"></span>
+        <span class="hamburger-bar"></span>
+        <span class="hamburger-bar"></span>
+    </button>
     <div class="brand">
         <img src="favicon.png" alt="Logo" style="width:28px;height:28px;object-fit:contain;">
         <h1 class="brand-text"><span class="volga-text">VOLGA</span><span class="infosys-text">INFOSYS</span></h1>
         <div class="brand-sep"></div>
         <span class="brand-subtitle">Project Manager</span>
     </div>
-    <div id="user-info" class="user-profile-pill" style="display:none;">
-        <div class="user-avatar" id="user-avatar-char">-</div>
-        <div class="user-info-text">
-            <span class="username" id="display-username"></span>
-            <span class="user-role" id="display-role"></span>
+    <div style="display:flex; align-items:center; gap:10px;">
+        <div id="user-info" class="user-profile-pill" style="display:none;">
+            <div class="user-avatar" id="user-avatar-char">-</div>
+            <div class="user-info-text">
+                <span class="username" id="display-username"></span>
+                <span class="user-role" id="display-role"></span>
+            </div>
+            <button class="logout-btn" onclick="logout()" title="Logout">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                    <polyline points="16 17 21 12 16 7"></polyline>
+                    <line x1="21" y1="12" x2="9" y2="12"></line>
+                </svg>
+            </button>
         </div>
-        <button class="logout-btn" onclick="logout()" title="Logout">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
-                <polyline points="16 17 21 12 16 7"></polyline>
-                <line x1="21" y1="12" x2="9" y2="12"></line>
-            </svg>
-        </button>
     </div>
 </nav>
 
@@ -1093,14 +1472,14 @@ footer {
                 </svg>
             </div>
             <div class="admin-card-text">
-                <p class="admin-card-title blue">Admin: Create New Project</p>
+                <div class="admin-card-title-row">
+                    <p class="admin-card-title blue">Create New Project</p>
+                </div>
                 <p class="admin-card-subtitle">Create and configure a new project workspace</p>
             </div>
-            <div class="admin-card-action">
-                <button class="action-circle-btn blue" onclick="event.stopPropagation(); toggleCreateProject()">
-                    <span id="create-proj-toggle-icon" style="transition:transform 0.2s; display:inline-block;">›</span>
-                </button>
-            </div>
+            <svg class="admin-card-chevron" id="create-proj-toggle-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="m9 6 6 6-6 6"/>
+            </svg>
         </div>
         <div id="create-project-container" class="admin-card-body" style="display:none;">
             <p style="font-size:0.84rem;color:#64748b;margin:0 0 14px;">Create a new project workspace. A dedicated tracker page will be generated and added to the portal.</p>
@@ -1150,15 +1529,15 @@ footer {
                 </svg>
             </div>
             <div class="admin-card-text">
-                <p class="admin-card-title purple">Central User Login Credentials</p>
+                <div class="admin-card-title-row">
+                    <p class="admin-card-title purple">User Login Credentials</p>
+                    <span class="users-count-badge" id="users-count-badge">0 Users</span>
+                </div>
                 <p class="admin-card-subtitle">Manage logins, roles, and project access for all team members</p>
             </div>
-            <div class="admin-card-action">
-                <span class="users-count-badge" id="users-count-badge">0 Users</span>
-                <button class="action-circle-btn purple" onclick="event.stopPropagation(); toggleUserManagement()">
-                    <span id="user-mgmt-toggle-icon" style="transition:transform 0.2s; display:inline-block;">›</span>
-                </button>
-            </div>
+            <svg class="admin-card-chevron" id="user-mgmt-toggle-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="m9 6 6 6-6 6"/>
+            </svg>
         </div>
         <div id="user-management-container" class="admin-card-body" style="display:none;">
             <p style="font-size:0.84rem;color:#64748b;margin:0 0 14px;">Add, rename, or revoke user logins globally. Authorize team members and assign project access.</p>
@@ -1364,10 +1743,10 @@ document.addEventListener("DOMContentLoaded", async function() {
     const avatarEl = document.getElementById('user-avatar-char');
     if (avatarEl) avatarEl.innerText = avatarChar;
 
-    // Configure toggler & admin grid
-    const toggleBtnSpan = document.querySelector('#drawer-toggle-btn span');
-    if (toggleBtnSpan) {
-        toggleBtnSpan.textContent = userRole === 'admin' ? 'Admin Panel' : 'Announcements';
+    // Configure toggler label & admin grid
+    const toggleBtnLabel = document.getElementById('drawer-toggle-label');
+    if (toggleBtnLabel) {
+        toggleBtnLabel.textContent = userRole === 'admin' ? 'Admin Panel' : 'Announcements';
     }
     const drawerHeaderTitle = document.querySelector('.drawer-header h3');
     if (drawerHeaderTitle && userRole === 'admin') {
@@ -1382,6 +1761,14 @@ document.addEventListener("DOMContentLoaded", async function() {
     const drawerActions = document.getElementById('admin-drawer-actions');
     if (drawerActions && userRole === 'admin') {
         drawerActions.style.display = 'flex';
+    }
+    const downloadSection = document.getElementById('admin-download-section');
+    if (downloadSection && userRole === 'admin') {
+        downloadSection.style.display = 'flex';
+    }
+    const divider = document.getElementById('admin-announcements-divider');
+    if (divider && userRole === 'admin') {
+        divider.style.display = 'block';
     }
 
     if (userRole === 'admin') {
@@ -1701,10 +2088,10 @@ function toggleUserManagement() {
     const icon = document.getElementById('user-mgmt-toggle-icon');
     if (container.style.display === 'none') {
         container.style.display = 'block';
-        icon.style.transform = 'rotate(90deg)';
+        if (icon) icon.classList.add('rotated');
     } else {
         container.style.display = 'none';
-        icon.style.transform = 'rotate(0deg)';
+        if (icon) icon.classList.remove('rotated');
     }
 }
 
@@ -1713,10 +2100,10 @@ function toggleCreateProject() {
     const icon = document.getElementById('create-proj-toggle-icon');
     if (container.style.display === 'none') {
         container.style.display = 'block';
-        icon.style.transform = 'rotate(90deg)';
+        if (icon) icon.classList.add('rotated');
     } else {
         container.style.display = 'none';
-        icon.style.transform = 'rotate(0deg)';
+        if (icon) icon.classList.remove('rotated');
     }
 }
 
@@ -2009,6 +2396,538 @@ function showCustomConfirm(title, message, isDanger = true, okText = null, banne
     });
 }
 
+// ─── Download Summary Accordion Logic ────────────────────────────────────────
+
+// Static projects list (mirrors the ones used in downloadPortalSummary)
+const DL_STATIC_PROJECTS = [
+    { id: 'engine_vr',   name: 'Engine VR',          color: '#2563eb',  firestoreCollection: 'engines',           localStorageKey: 'engineTrackerData' },
+    { id: 'gutfeeling',  name: 'GutFeeling',          color: '#10b981',  firestoreCollection: 'gutfeeling_engines', localStorageKey: 'gutfeelingTrackerData' },
+    { id: 'chaff',       name: 'Chaff Extension',     color: '#8b5cf6',  firestoreCollection: 'chaff_engines',      localStorageKey: 'chaffTrackerData' },
+];
+
+function getDlProjects() {
+    const registry = getProjectRegistry();
+    return [
+        ...DL_STATIC_PROJECTS,
+        ...registry.map(p => ({
+            id: p.id,
+            name: p.name,
+            color: p.accentColor || '#6366f1',
+            firestoreCollection: p.firestoreCollection || (p.id + '_records'),
+            localStorageKey: p.localStorageKey || (p.id + 'TrackerData'),
+        }))
+    ];
+}
+
+function renderDlProjectList() {
+    const list = document.getElementById('dl-project-list');
+    if (!list) return;
+    const projects = getDlProjects();
+    const dlSvg  = `<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg>`;
+    const pdfSvg = `<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>`;
+    list.innerHTML = projects.map(p => {
+        const totalEl = document.getElementById('dyn-' + p.id + '-total') || document.getElementById(p.id.replace(/_/g,'-') + '-total');
+        const tasks = totalEl ? (totalEl.innerText || '—') : '—';
+        return `<div class="dl-item-row">
+            <span class="dl-swatch" style="background:${p.color};"></span>
+            <span class="dl-item-name">${p.name}<span class="dl-item-meta">${tasks} tasks</span></span>
+            <div class="dl-btn-group">
+                <button class="dl-split-btn csv" onclick="downloadSingleProjectCSV('${p.id}')">${dlSvg}CSV</button>
+                <button class="dl-split-btn pdf" onclick="downloadSingleProjectPDF('${p.id}')">${pdfSvg}PDF</button>
+            </div>
+        </div>`;
+    }).join('');
+}
+
+function renderDlUserList() {
+    const list = document.getElementById('dl-user-list');
+    if (!list) return;
+    if (!authUsers || authUsers.length === 0) {
+        list.innerHTML = '<div style="padding:10px 13px;font-size:0.82rem;color:var(--text-muted);">No users found.</div>';
+        return;
+    }
+    const dlSvg  = `<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg>`;
+    const pdfSvg = `<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>`;
+    list.innerHTML = authUsers.map(u => `
+        <div class="dl-item-row">
+            <span class="dl-swatch" style="background:#3b82f6;"></span>
+            <span class="dl-item-name">${u.displayName || u.id}<span class="dl-item-meta">${u.role || 'user'}</span></span>
+            <div class="dl-btn-group">
+                <button class="dl-split-btn csv" onclick="downloadSingleUserCSV('${u.id}')">${dlSvg}CSV</button>
+                <button class="dl-split-btn pdf" onclick="downloadSingleUserPDF('${u.id}')">${pdfSvg}PDF</button>
+            </div>
+        </div>
+    `).join('');
+}
+
+function toggleDlAccordion() {
+    const toggle = document.getElementById('dl-accordion-toggle');
+    const panel  = document.getElementById('dl-accordion-panel');
+    const isOpen = toggle.classList.contains('open');
+    if (isOpen) {
+        toggle.classList.remove('open');
+        panel.style.maxHeight = null;
+        // collapse both subgroups
+        ['dl-proj-panel','dl-user-panel'].forEach(id => {
+            const p = document.getElementById(id); if (p) p.style.maxHeight = null;
+        });
+        ['dl-proj-toggle','dl-user-toggle'].forEach(id => {
+            const b = document.getElementById(id); if (b) b.setAttribute('aria-expanded','false');
+        });
+    } else {
+        toggle.classList.add('open');
+        renderDlProjectList();
+        renderDlUserList();
+        panel.style.maxHeight = '2000px';
+    }
+}
+
+function toggleDlSubgroup(toggleId, panelId) {
+    const btn   = document.getElementById(toggleId);
+    const panel = document.getElementById(panelId);
+    const open  = btn.getAttribute('aria-expanded') === 'true';
+    btn.setAttribute('aria-expanded', String(!open));
+    if (open) {
+        panel.style.maxHeight = null;
+    } else {
+        // Use a large fixed cap — no parent height recalculation needed
+        panel.style.maxHeight = '2000px';
+    }
+}
+
+// ─── CSV / PDF Helpers ────────────────────────────────────────────────────────
+function fmtDate(d) {
+    if (!d) return '';
+    const dt = new Date(d);
+    if (isNaN(dt)) return d;
+    return dt.toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' });
+}
+function fmtStatus(s) {
+    if (s === 'Completed')   return '✓ Completed';
+    if (s === 'In Progress') return '→ In Progress';
+    if (s === 'Not Started') return '○ Not Started';
+    return s || '';
+}
+function taskName(r)    { return r.engine || r.name || ''; }
+function taskRemarks(r) { return r.remarks || r.notes || ''; }
+
+function buildProjectCSVRows(project, records) {
+    const now   = new Date().toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});
+    const total = records.length;
+    const done  = records.filter(r => r.status === 'Completed').length;
+    const prog  = records.filter(r => r.status === 'In Progress').length;
+    const pct   = total ? Math.round(done / total * 100) : 0;
+    return [
+        [`Volga Infosys \u2014 ${project.name} Tracker`],
+        [`Generated: ${now}`, '', `Exported by: ${userName}`],
+        [],
+        ['SUMMARY','Total: '+total,'Completed: '+done,'In Progress: '+prog,'Not Started: '+(total-done-prog),'Completion: '+pct+'%'],
+        [],
+        ['#','Assigned To','Task / Engine','Status','Assigned Date','Target Date','Completion Date','Remarks','Drive Link'],
+        ...records.map((r,i) => [i+1, r.user||'', taskName(r), fmtStatus(r.status), fmtDate(r.assigned), fmtDate(r.target), fmtDate(r.completion), taskRemarks(r), r.driveUrl||''])
+    ];
+}
+
+function buildUserCSVRows(displayName, role, allRecords) {
+    const now   = new Date().toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});
+    const total = allRecords.length;
+    const done  = allRecords.filter(r => r.status === 'Completed').length;
+    const prog  = allRecords.filter(r => r.status === 'In Progress').length;
+    return [
+        [`Volga Infosys \u2014 ${displayName} Task Summary`],
+        [`Generated: ${now}`, '', `Role: ${role}`, '', `Exported by: ${userName}`],
+        [],
+        ['SUMMARY','Total Assigned: '+total,'Completed: '+done,'In Progress: '+prog,'Not Started: '+(total-done-prog)],
+        [],
+        ['#','Project','Task / Engine','Status','Assigned Date','Target Date','Completion Date','Remarks'],
+        ...allRecords.map((r,i) => [i+1, r._projectName||'', taskName(r), fmtStatus(r.status), fmtDate(r.assigned), fmtDate(r.target), fmtDate(r.completion), taskRemarks(r)])
+    ];
+}
+
+// CSV helpers
+function dlToCSV(rows) {
+    return rows.map(r => r.map(cell => {
+        const v = String(cell ?? '');
+        return /[",\n]/.test(v) ? `"${v.replace(/"/g, '""')}"` : v;
+    }).join(',')).join('\n');
+}
+
+function dlDownloadCSV(filename, rows) {
+    const blob = new Blob(['\uFEFF' + dlToCSV(rows)], { type: 'text/csv;charset=utf-8;' });
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    a.href = url; a.download = filename;
+    document.body.appendChild(a); a.click(); a.remove();
+    URL.revokeObjectURL(url);
+}
+
+function getDlRecords(project) {
+    const local = localStorage.getItem(project.localStorageKey);
+    return local ? JSON.parse(local) : [];
+}
+
+async function getDlRecordsAsync(project) {
+    if (db) {
+        try {
+            const snap = await db.collection(project.firestoreCollection).get();
+            const rows = snap.docs.map(d => d.data());
+            if (rows.length > 0) return rows;
+        } catch(e) { /* fall through to localStorage */ }
+    }
+    return getDlRecords(project);
+}
+
+async function downloadSingleProjectCSV(id) {
+    const project = getDlProjects().find(p => p.id === id);
+    if (!project) return;
+    const records = await getDlRecordsAsync(project);
+    dlDownloadCSV(`${project.id}-summary.csv`, buildProjectCSVRows(project, records));
+    showCustomAlert('Downloaded', `${project.name} CSV saved.`, false);
+}
+
+async function downloadAllProjectsCSV() {
+    const projects = getDlProjects();
+    const now = new Date().toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});
+    const rows = [
+        ['Volga Infosys \u2014 All Projects Summary'],
+        ['Generated: '+now, '', 'Exported by: '+userName],
+        [],
+        ['#','Project','Assigned To','Task / Engine','Status','Assigned Date','Target Date','Completion Date','Remarks','Drive Link']
+    ];
+    let i = 1;
+    for (const p of projects) {
+        const records = await getDlRecordsAsync(p);
+        if (records.length) {
+            rows.push([]);
+            rows.push(['--- '+p.name+' ---']);
+            records.forEach(r => rows.push([i++, p.name, r.user||'', taskName(r), fmtStatus(r.status), fmtDate(r.assigned), fmtDate(r.target), fmtDate(r.completion), taskRemarks(r), r.driveUrl||'']));
+        }
+    }
+    dlDownloadCSV('all-projects-summary.csv', rows);
+    showCustomAlert('Downloaded', 'All projects CSV saved.', false);
+}
+
+async function downloadSingleUserCSV(userId) {
+    const user = authUsers.find(u => u.id === userId);
+    if (!user) return;
+    const displayName = user.displayName || user.id;
+    const projects = getDlProjects();
+    const allRecords = [];
+    for (const p of projects) {
+        const records = await getDlRecordsAsync(p);
+        records.filter(r => r.user === displayName).forEach(r => allRecords.push({...r, _projectName: p.name}));
+    }
+    dlDownloadCSV(`${userId}-summary.csv`, buildUserCSVRows(displayName, user.role||'user', allRecords));
+    showCustomAlert('Downloaded', `${displayName} CSV saved.`, false);
+}
+
+async function downloadAllUsersCSV() {
+    const now = new Date().toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});
+    const rows = [
+        ['Volga Infosys \u2014 All Users Summary'],
+        ['Generated: '+now, '', 'Exported by: '+userName],
+        [],
+        ['#','User','Role','Project','Task / Engine','Status','Assigned Date','Target Date','Completion Date','Remarks']
+    ];
+    const projects = getDlProjects();
+    let i = 1;
+    for (const u of authUsers) {
+        const displayName = u.displayName || u.id;
+        const userRows = [];
+        for (const p of projects) {
+            const records = await getDlRecordsAsync(p);
+            records.filter(r => r.user === displayName).forEach(r => {
+                userRows.push([i++, displayName, u.role||'user', p.name, taskName(r), fmtStatus(r.status), fmtDate(r.assigned), fmtDate(r.target), fmtDate(r.completion), taskRemarks(r)]);
+            });
+        }
+        if (userRows.length) {
+            rows.push([]);
+            rows.push(['--- '+displayName+' ---']);
+            userRows.forEach(r => rows.push(r));
+        }
+    }
+    dlDownloadCSV('all-users-summary.csv', rows);
+    showCustomAlert('Downloaded', 'All users CSV saved.', false);
+}
+
+// ─── PDF Helper Utilities ─────────────────────────────────────────────────────
+function statusColor(s){
+    if(s==='Completed')   return{bg:'#d1fae5',fg:'#065f46',dot:'#10b981'};
+    if(s==='In Progress') return{bg:'#dbeafe',fg:'#1e40af',dot:'#3b82f6'};
+    return{bg:'#fef3c7',fg:'#92400e',dot:'#f59e0b'};
+}
+function statusSymbol(s){
+    if(s==='Completed')   return '&#10003;';
+    if(s==='In Progress') return '&#8594;';
+    return '&#9675;';
+}
+function pdfBarChart(countsObj, accentColor){
+    if(!countsObj||!Object.keys(countsObj).length) return '<div style="font-size:11px;color:#94a3b8;padding:8px 0;">No data.</div>';
+    const max=Math.max(...Object.values(countsObj),1);
+    return Object.entries(countsObj).sort((a,b)=>b[1]-a[1]).slice(0,8).map(([name,count])=>{
+        const pct=Math.round(count/max*100);
+        return `<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+            <div style="width:110px;font-size:11px;font-weight:600;color:#334155;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${name}</div>
+            <div style="flex:1;background:#f1f5f9;border-radius:4px;height:14px;overflow:hidden;">
+                <div style="width:${pct}%;height:100%;background:${accentColor};border-radius:4px;"></div>
+            </div>
+            <div style="width:24px;font-size:11px;font-weight:700;color:${accentColor};text-align:right;">${count}</div>
+        </div>`;
+    }).join('');
+}
+function pdfDonut(pct,color){
+    const r=36,circ=2*Math.PI*r,dash=(pct/100)*circ;
+    return `<svg width="88" height="88" viewBox="0 0 88 88">
+        <circle cx="44" cy="44" r="${r}" fill="none" stroke="#f1f5f9" stroke-width="10"/>
+        <circle cx="44" cy="44" r="${r}" fill="none" stroke="${color}" stroke-width="10"
+            stroke-dasharray="${dash.toFixed(2)} ${circ.toFixed(2)}" stroke-dashoffset="${(circ/4).toFixed(2)}" stroke-linecap="round"/>
+        <text x="44" y="49" text-anchor="middle" font-size="14" font-weight="800" fill="#1e293b">${pct}%</text>
+    </svg>`;
+}
+function pdfHeader(title,subtitle,date){
+    return `<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:24px;padding-bottom:18px;border-bottom:2px solid #e2e8f0;">
+        <div>
+            <div style="font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#94a3b8;margin-bottom:4px;">VOLGA INFOSYS — PROJECT MANAGEMENT PORTAL</div>
+            <div style="font-size:22px;font-weight:800;color:#0f172a;line-height:1.2;">${title}</div>
+            <div style="font-size:12px;color:#64748b;margin-top:4px;">${subtitle}</div>
+        </div>
+        <div style="text-align:right;flex-shrink:0;margin-left:20px;">
+            <div style="font-size:10px;color:#94a3b8;font-weight:600;">GENERATED</div>
+            <div style="font-size:13px;font-weight:700;color:#334155;">${date}</div>
+            <div style="font-size:10px;color:#94a3b8;margin-top:2px;">by ${userName}</div>
+        </div>
+    </div>`;
+}
+function pdfStatCards(stats){
+    return `<div style="display:grid;grid-template-columns:repeat(${stats.length},1fr);gap:10px;margin-bottom:16px;">
+        ${stats.map(s=>`<div style="background:${s.bg};border-radius:10px;padding:12px 14px;border:1px solid ${s.border};">
+            <div style="font-size:9px;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;color:${s.fg};margin-bottom:5px;">${s.label}</div>
+            <div style="font-size:26px;font-weight:800;color:${s.fg};line-height:1;">${s.val}</div>
+        </div>`).join('')}
+    </div>`;
+}
+function pdfTaskTable(records, accentColor, includeProject){
+    const cols=includeProject
+        ?['#','Project','Task / Engine','Assigned To','Status','Target Date','Completion Date']
+        :['#','Task / Engine','Assigned To','Status','Assigned Date','Target Date','Completion Date','Remarks'];
+    const thS=`padding:8px 10px;font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;color:#64748b;border-bottom:2px solid ${accentColor};background:#f8fafc;`;
+    const tdS=`padding:8px 10px;font-size:11px;color:#334155;border-bottom:1px solid #f1f5f9;`;
+    const headerRow=`<tr>${cols.map(c=>`<th style="${thS}">${c}</th>`).join('')}</tr>`;
+    const dataRows=records.map((r,i)=>{
+        const sc=statusColor(r.status);
+        const stCell=`<span style="display:inline-block;padding:2px 7px;border-radius:20px;font-size:9.5px;font-weight:700;background:${sc.bg};color:${sc.fg};">${statusSymbol(r.status)} ${r.status||''}</span>`;
+        const bg=i%2===0?'#ffffff':'#f8fafc';
+        const cells=includeProject
+            ?[i+1,r._projectName||'',taskName(r)||'—',r.user||'—',stCell,fmtDate(r.target)||'—',fmtDate(r.completion)||'—']
+            :[i+1,taskName(r)||'—',r.user||'—',stCell,fmtDate(r.assigned)||'—',fmtDate(r.target)||'—',fmtDate(r.completion)||'—',taskRemarks(r)||''];
+        return `<tr style="background:${bg};">${cells.map((c,ci)=>`<td style="${tdS}${ci===0?'color:#94a3b8;font-weight:700;width:28px;':''}">${c}</td>`).join('')}</tr>`;
+    }).join('');
+    const empty=`<tr><td colspan="${cols.length}" style="padding:20px;text-align:center;color:#94a3b8;font-size:12px;">No tasks found.</td></tr>`;
+    return `<table style="width:100%;border-collapse:collapse;font-family:'Segoe UI',sans-serif;">
+        <thead>${headerRow}</thead><tbody>${dataRows||empty}</tbody></table>`;
+}
+function triggerPDF(htmlContent, filename){
+    if(typeof html2pdf==='undefined'){ alert('PDF library not loaded.'); return; }
+    const opt={
+        margin:      [10,10,10,10],
+        filename:    filename,
+        image:       { type:'jpeg', quality:0.98 },
+        html2canvas: { scale:2, useCORS:true, logging:false, allowTaint:true, scrollX:0, scrollY:0 },
+        jsPDF:       { unit:'mm', format:'a4', orientation:'landscape' }
+    };
+    // Render in a visible but transparent overlay so html2canvas captures real pixels
+    const wrapper = document.createElement('div');
+    wrapper.style.cssText = 'position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:99999;overflow:auto;background:#fff;opacity:0;pointer-events:none;';
+    const el = document.createElement('div');
+    el.style.cssText = 'width:257mm;background:#fff;font-family:"Segoe UI",Tahoma,sans-serif;padding:18px;box-sizing:border-box;';
+    el.innerHTML = htmlContent;
+    wrapper.appendChild(el);
+    document.body.appendChild(wrapper);
+    // Give browser one frame to lay out, then capture
+    requestAnimationFrame(() => {
+        setTimeout(() => {
+            html2pdf().set(opt).from(el).save().then(() => {
+                document.body.removeChild(wrapper);
+            });
+        }, 300);
+    });
+}
+
+// ─── PDF Download Functions ───────────────────────────────────────────────────
+async function downloadSingleProjectPDF(id){
+    const project=getDlProjects().find(p=>p.id===id);
+    if(!project) return;
+    const records=await getDlRecordsAsync(project);
+    const total=records.length;
+    const done=records.filter(r=>r.status==='Completed').length;
+    const prog=records.filter(r=>r.status==='In Progress').length;
+    const ns=records.filter(r=>r.status==='Not Started').length;
+    const pct=total?Math.round(done/total*100):0;
+    const color=project.color||'#3b82f6';
+    const now=new Date().toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});
+    const userCounts={};
+    records.forEach(r=>{if(r.user) userCounts[r.user]=(userCounts[r.user]||0)+1;});
+    const html=`${pdfHeader(project.name+' Tracker','Project Summary Report',now)}
+        <div style="display:grid;grid-template-columns:1fr 196px;gap:18px;margin-bottom:18px;align-items:start;">
+            <div>
+                ${pdfStatCards([{label:'Total Tasks',val:total,bg:'#f8fafc',border:'#e2e8f0',fg:'#1e293b'},{label:'Completed',val:done,bg:'#d1fae5',border:'#a7f3d0',fg:'#065f46'},{label:'In Progress',val:prog,bg:'#dbeafe',border:'#bfdbfe',fg:'#1e40af'},{label:'Not Started',val:ns,bg:'#fef3c7',border:'#fde68a',fg:'#92400e'}])}
+                <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:14px;margin-bottom:14px;">
+                    <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:#94a3b8;margin-bottom:10px;">Team Workload</div>
+                    ${pdfBarChart(userCounts,color)}
+                </div>
+            </div>
+            <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:14px;text-align:center;">
+                <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:#94a3b8;margin-bottom:8px;">Completion Rate</div>
+                ${pdfDonut(pct,color)}
+                <div style="margin-top:8px;font-size:10px;color:#64748b;line-height:1.8;">
+                    <div><span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#10b981;margin-right:4px;"></span>Completed</div>
+                    <div><span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#3b82f6;margin-right:4px;"></span>In Progress</div>
+                    <div><span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#f59e0b;margin-right:4px;"></span>Not Started</div>
+                </div>
+            </div>
+        </div>
+        <div style="background:#fff;border:1px solid #e2e8f0;border-radius:10px;overflow:hidden;">
+            <div style="background:${color};padding:10px 14px;"><span style="font-size:12px;font-weight:700;color:#fff;">Task Details</span></div>
+            ${pdfTaskTable(records,color,false)}
+        </div>
+        <div style="margin-top:16px;padding-top:10px;border-top:1px solid #e2e8f0;font-size:9px;color:#94a3b8;display:flex;justify-content:space-between;">
+            <span>Volga Infosys Private Limited &mdash; Confidential</span><span>Generated: ${now} by ${userName}</span>
+        </div>`;
+    triggerPDF(html,`${project.id}-summary.pdf`);
+    showCustomAlert('Generating PDF',`${project.name} PDF is being prepared&hellip;`,false);
+}
+
+async function downloadSingleUserPDF(userId){
+    const user=authUsers.find(u=>u.id===userId);
+    if(!user) return;
+    const displayName=user.displayName||user.id;
+    const projects=getDlProjects();
+    const allRecords=[];
+    const projCounts={};
+    for(const p of projects){
+        const recs=await getDlRecordsAsync(p);
+        const mine=recs.filter(r=>r.user===displayName);
+        mine.forEach(r=>allRecords.push({...r,_projectName:p.name}));
+        if(mine.length) projCounts[p.name]=mine.length;
+    }
+    const total=allRecords.length;
+    const done=allRecords.filter(r=>r.status==='Completed').length;
+    const prog=allRecords.filter(r=>r.status==='In Progress').length;
+    const ns=allRecords.filter(r=>r.status==='Not Started').length;
+    const pct=total?Math.round(done/total*100):0;
+    const now=new Date().toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});
+    const roleBadge=`<span style="display:inline-block;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:700;background:rgba(59,130,246,0.1);color:#1d4ed8;">${user.role||'user'}</span>`;
+    const html=`${pdfHeader(displayName,`Personal Task Summary &nbsp;${roleBadge}`,now)}
+        <div style="display:grid;grid-template-columns:1fr 196px;gap:18px;margin-bottom:18px;align-items:start;">
+            <div>
+                ${pdfStatCards([{label:'Total Assigned',val:total,bg:'#f8fafc',border:'#e2e8f0',fg:'#1e293b'},{label:'Completed',val:done,bg:'#d1fae5',border:'#a7f3d0',fg:'#065f46'},{label:'In Progress',val:prog,bg:'#dbeafe',border:'#bfdbfe',fg:'#1e40af'},{label:'Not Started',val:ns,bg:'#fef3c7',border:'#fde68a',fg:'#92400e'}])}
+                <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:14px;">
+                    <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:#94a3b8;margin-bottom:10px;">Tasks by Project</div>
+                    ${pdfBarChart(projCounts,'#3b82f6')}
+                </div>
+            </div>
+            <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:14px;text-align:center;">
+                <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:#94a3b8;margin-bottom:8px;">Completion Rate</div>
+                ${pdfDonut(pct,'#3b82f6')}
+                <div style="margin-top:8px;font-size:10px;color:#64748b;line-height:1.8;">
+                    <div><span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#10b981;margin-right:4px;"></span>Completed</div>
+                    <div><span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#3b82f6;margin-right:4px;"></span>In Progress</div>
+                    <div><span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#f59e0b;margin-right:4px;"></span>Not Started</div>
+                </div>
+            </div>
+        </div>
+        <div style="background:#fff;border:1px solid #e2e8f0;border-radius:10px;overflow:hidden;">
+            <div style="background:#3b82f6;padding:10px 14px;"><span style="font-size:12px;font-weight:700;color:#fff;">All Assigned Tasks</span></div>
+            ${pdfTaskTable(allRecords,'#3b82f6',true)}
+        </div>
+        <div style="margin-top:16px;padding-top:10px;border-top:1px solid #e2e8f0;font-size:9px;color:#94a3b8;display:flex;justify-content:space-between;">
+            <span>Volga Infosys Private Limited &mdash; Confidential</span><span>Generated: ${now} by ${userName}</span>
+        </div>`;
+    triggerPDF(html,`${userId}-summary.pdf`);
+    showCustomAlert('Generating PDF',`${displayName}'s PDF is being prepared&hellip;`,false);
+}
+
+async function downloadAllProjectsPDF(){
+    const projects=getDlProjects();
+    const now=new Date().toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});
+    let total=0,done=0,prog=0,ns=0;
+    const allRecs=[];
+    const projBarsData={};
+    for(const p of projects){
+        const recs=await getDlRecordsAsync(p);
+        recs.forEach(r=>allRecs.push({...r,_projectName:p.name}));
+        const d=recs.filter(r=>r.status==='Completed').length;
+        total+=recs.length; done+=d; prog+=recs.filter(r=>r.status==='In Progress').length; ns+=recs.filter(r=>r.status==='Not Started').length;
+        if(recs.length) projBarsData[p.name]=d+'/'+recs.length;
+    }
+    const pct=total?Math.round(done/total*100):0;
+    const projBarsFull={};
+    for(const p of projects){const recs=await getDlRecordsAsync(p);if(recs.length) projBarsFull[p.name]=recs.filter(r=>r.status==='Completed').length;}
+    const html=`${pdfHeader('Portal Overview','All Projects Summary Report',now)}
+        <div style="display:grid;grid-template-columns:1fr 196px;gap:18px;margin-bottom:18px;align-items:start;">
+            <div>
+                ${pdfStatCards([{label:'Total Tasks',val:total,bg:'#f8fafc',border:'#e2e8f0',fg:'#1e293b'},{label:'Completed',val:done,bg:'#d1fae5',border:'#a7f3d0',fg:'#065f46'},{label:'In Progress',val:prog,bg:'#dbeafe',border:'#bfdbfe',fg:'#1e40af'},{label:'Not Started',val:ns,bg:'#fef3c7',border:'#fde68a',fg:'#92400e'}])}
+                <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:14px;">
+                    <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:#94a3b8;margin-bottom:10px;">Progress by Project</div>
+                    ${pdfBarChart(projBarsFull,'#3b82f6')}
+                </div>
+            </div>
+            <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:14px;text-align:center;">
+                <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:#94a3b8;margin-bottom:8px;">Overall Completion</div>
+                ${pdfDonut(pct,'#3b82f6')}
+                <div style="margin-top:8px;font-size:12px;font-weight:700;color:#1e293b;">${projects.length} Projects</div>
+            </div>
+        </div>
+        <div style="background:#fff;border:1px solid #e2e8f0;border-radius:10px;overflow:hidden;">
+            <div style="background:#1e293b;padding:10px 14px;"><span style="font-size:12px;font-weight:700;color:#fff;">All Projects &mdash; Task Table</span></div>
+            ${pdfTaskTable(allRecs,'#3b82f6',true)}
+        </div>
+        <div style="margin-top:16px;padding-top:10px;border-top:1px solid #e2e8f0;font-size:9px;color:#94a3b8;display:flex;justify-content:space-between;">
+            <span>Volga Infosys Private Limited &mdash; Confidential</span><span>Generated: ${now} by ${userName}</span>
+        </div>`;
+    triggerPDF(html,'all-projects-summary.pdf');
+    showCustomAlert('Generating PDF','Portal overview PDF is being prepared&hellip;',false);
+}
+
+async function downloadAllUsersPDF(){
+    const now=new Date().toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});
+    const projects=getDlProjects();
+    const allRecs=[];
+    for(const p of projects){const recs=await getDlRecordsAsync(p);recs.forEach(r=>allRecs.push({...r,_projectName:p.name}));}
+    const userCounts={};
+    allRecs.forEach(r=>{if(r.user) userCounts[r.user]=(userCounts[r.user]||0)+1;});
+    const total=allRecs.length;
+    const done=allRecs.filter(r=>r.status==='Completed').length;
+    const prog=allRecs.filter(r=>r.status==='In Progress').length;
+    const ns=allRecs.filter(r=>r.status==='Not Started').length;
+    const pct=total?Math.round(done/total*100):0;
+    const sorted=allRecs.slice().sort((a,b)=>(a.user||'').localeCompare(b.user||''));
+    const html=`${pdfHeader('All Users Summary','Complete Team Task Report',now)}
+        <div style="display:grid;grid-template-columns:1fr 196px;gap:18px;margin-bottom:18px;align-items:start;">
+            <div>
+                ${pdfStatCards([{label:'Total Tasks',val:total,bg:'#f8fafc',border:'#e2e8f0',fg:'#1e293b'},{label:'Completed',val:done,bg:'#d1fae5',border:'#a7f3d0',fg:'#065f46'},{label:'In Progress',val:prog,bg:'#dbeafe',border:'#bfdbfe',fg:'#1e40af'},{label:'Not Started',val:ns,bg:'#fef3c7',border:'#fde68a',fg:'#92400e'}])}
+                <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:14px;">
+                    <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:#94a3b8;margin-bottom:10px;">Tasks per Team Member</div>
+                    ${pdfBarChart(userCounts,'#3b82f6')}
+                </div>
+            </div>
+            <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:14px;text-align:center;">
+                <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:#94a3b8;margin-bottom:8px;">Overall Completion</div>
+                ${pdfDonut(pct,'#3b82f6')}
+                <div style="margin-top:8px;font-size:12px;font-weight:700;color:#1e293b;">${authUsers.length} Members</div>
+            </div>
+        </div>
+        <div style="background:#fff;border:1px solid #e2e8f0;border-radius:10px;overflow:hidden;">
+            <div style="background:#1e293b;padding:10px 14px;"><span style="font-size:12px;font-weight:700;color:#fff;">All Tasks by Member</span></div>
+            ${pdfTaskTable(sorted,'#3b82f6',true)}
+        </div>
+        <div style="margin-top:16px;padding-top:10px;border-top:1px solid #e2e8f0;font-size:9px;color:#94a3b8;display:flex;justify-content:space-between;">
+            <span>Volga Infosys Private Limited &mdash; Confidential</span><span>Generated: ${now} by ${userName}</span>
+        </div>`;
+    triggerPDF(html,'all-users-summary.pdf');
+    showCustomAlert('Generating PDF','All users PDF is being prepared&hellip;',false);
+}
+
 // ─── Collapsible Left-Hand Drawer Logic ───────────────────────────────────────
 function toggleAdminDrawer() {
     const drawer = document.getElementById('admin-drawer');
@@ -2017,11 +2936,11 @@ function toggleAdminDrawer() {
     if (drawer.classList.contains('open')) {
         drawer.classList.remove('open');
         overlay.classList.remove('active');
-        toggleBtn.classList.remove('drawer-open');
+        if (toggleBtn) toggleBtn.classList.remove('active');
     } else {
         drawer.classList.add('open');
         overlay.classList.add('active');
-        toggleBtn.classList.add('drawer-open');
+        if (toggleBtn) toggleBtn.classList.add('active');
         loadAnnouncement();
     }
 }
@@ -2115,13 +3034,16 @@ function closeAnnouncementBanner() {
 
 function toggleBroadcastEditor() {
     const editor = document.getElementById('admin-broadcast-editor');
+    const btn    = document.getElementById('announce-toggle-btn');
     if (editor) {
         if (editor.style.display === 'none') {
             editor.style.display = 'block';
+            if (btn) btn.classList.add('open');
             const input = document.getElementById('broadcast-input');
             if (input) input.focus();
         } else {
             editor.style.display = 'none';
+            if (btn) btn.classList.remove('open');
         }
     }
 }
