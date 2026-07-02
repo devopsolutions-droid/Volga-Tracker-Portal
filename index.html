@@ -255,76 +255,9 @@
         }
     }
 
-    /* Loader Overlay */
-    .loader-overlay {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100vw;
-        height: 100vh;
-        background: rgba(255, 255, 255, 0.95);
-        backdrop-filter: blur(10px);
-        -webkit-backdrop-filter: blur(10px);
-        z-index: 9999;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        opacity: 0;
-        visibility: hidden;
-        transition: opacity 0.4s ease, visibility 0.4s ease;
-    }
-
-    .loader-overlay.active {
-        opacity: 1;
-        visibility: visible;
-    }
-
-    .loader-content {
-        text-align: center;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-    }
-
-    .loader-spinner {
-        animation: spin-pulse 2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
-        margin-bottom: 20px;
-    }
-
-    @keyframes spin-pulse {
-        0% { transform: scale(0.9) rotate(0deg); opacity: 0.7; }
-        50% { transform: scale(1.1) rotate(180deg); opacity: 1; }
-        100% { transform: scale(0.9) rotate(360deg); opacity: 0.7; }
-    }
-
-    .loader-content h2 {
-        color: var(--dark);
-        margin: 0 0 8px 0;
-        font-size: 1.5rem;
-        font-weight: 800;
-        letter-spacing: 0.5px;
-    }
-
-    .loader-content p {
-        color: #666;
-        margin: 0;
-        font-size: 0.95rem;
-        font-weight: 500;
-    }
 </style>
 </head>
 <body>
-
-<!-- Loader Screen -->
-<div id="loader-overlay" class="loader-overlay">
-    <div class="loader-content">
-        <div class="loader-spinner">
-            <img src="favicon.png" alt="Loading Logo" style="width: 48px; height: 48px; object-fit: contain;">
-        </div>
-        <h2 id="loader-text">Authenticating...</h2>
-        <p>Preparing your workspace</p>
-    </div>
-</div>
 
 <div class="login-box">
     <div class="login-header">
@@ -451,9 +384,7 @@
                 sessionStorage.setItem('role', 'admin');
                 sessionStorage.setItem('username', userid);
                 
-                showLoader(() => {
-                    window.location.href = 'dashboard.html';
-                });
+                window.location.href = 'dashboard.html';
             } else {
                 errorEl.innerText = "Invalid Admin Credentials";
                 errorEl.style.display = 'block';
@@ -470,9 +401,7 @@
                     sessionStorage.setItem('username', match.displayName);
                     sessionStorage.setItem('userid', match.id);
                     
-                    showLoader(() => {
-                        window.location.href = 'dashboard.html';
-                    });
+                    window.location.href = 'dashboard.html';
                 } else {
                     errorEl.innerText = "Invalid User ID. Please contact an Admin.";
                     errorEl.style.display = 'block';
@@ -483,19 +412,6 @@
                 errorEl.style.display = 'block';
             }
         }
-    }
-
-    function showLoader(callback) {
-        const overlay = document.getElementById('loader-overlay');
-        overlay.classList.add('active');
-        
-        // Dynamic text change for a premium feel
-        setTimeout(() => {
-            document.getElementById('loader-text').innerText = "Loading workspace...";
-        }, 1200);
-
-        // Navigate immediately — the overlay plays while the next page loads in the background
-        callback();
     }
 
     // Allow pressing Enter to login
