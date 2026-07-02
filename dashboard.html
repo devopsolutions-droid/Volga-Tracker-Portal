@@ -1057,6 +1057,90 @@ footer {
     border-radius: 99px;
     transition: background 0.2s;
 }
+
+/* Uiverse Toggle Switch CSS */
+.uiverse-toggle-label {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    cursor: pointer;
+    user-select: none;
+}
+
+.uiverse-toggle-input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
+}
+
+.uiverse-toggle-track {
+    position: relative;
+    width: 48px;
+    height: 24px;
+    background-color: #fb7185; /* bg-rose-400 */
+    border-radius: 9999px;
+    outline: none;
+    transition: background-color 0.3s, box-shadow 0.3s;
+    box-shadow: 0 2px 4px -1px rgba(0, 0, 0, 0.1);
+}
+
+.uiverse-toggle-track::after {
+    content: '';
+    position: absolute;
+    border-radius: 50%;
+    background-color: #f9fafb;
+    height: 18px;
+    width: 18px;
+    top: 3px;
+    left: 3px;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    z-index: 2;
+}
+
+.uiverse-toggle-label:hover .uiverse-toggle-track::after {
+    transform: scale(0.95);
+}
+
+.uiverse-toggle-input:checked + .uiverse-toggle-track {
+    background-color: #10b981; /* bg-emerald-500 */
+}
+
+.uiverse-toggle-input:checked + .uiverse-toggle-track::after {
+    transform: translateX(24px);
+}
+
+.uiverse-toggle-label:hover .uiverse-toggle-input:checked + .uiverse-toggle-track::after {
+    transform: translateX(24px) scale(0.95);
+}
+
+.uiverse-toggle-svg-right {
+    position: absolute;
+    top: 3px;
+    left: 27px;
+    width: 18px;
+    height: 18px;
+    z-index: 1;
+    pointer-events: none;
+    stroke: #111827;
+}
+
+.uiverse-toggle-svg-left {
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 18px;
+    height: 18px;
+    z-index: 1;
+    pointer-events: none;
+    stroke: #111827;
+}
 </style>
 </head>
 <body>
@@ -1460,6 +1544,44 @@ footer {
 
 </div><!-- /.projects-grid -->
 
+<!-- User Cloned Projects Card (Read-only for normal users with access) -->
+<div id="user-cloned-projects-card" style="display:none; margin-bottom:40px;">
+    <div style="background:#ffffff; border-radius:14px; border:1px solid #e2e8f0; border-top:4px solid #f97316; padding:24px; box-shadow:var(--shadow-sm);">
+        <div style="display:flex; justify-content:space-between; align-items:center; gap:16px; margin-bottom:14px; flex-wrap:wrap;">
+            <div style="display:flex; align-items:center; gap:10px;">
+                <div style="background:rgba(249,115,22,0.1); color:#f97316; width:36px; height:36px; border-radius:10px; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                    </svg>
+                </div>
+                <div>
+                    <h3 style="margin:0; font-size:1.1rem; font-weight:800; color:var(--dark);">Cloned Projects Credentials</h3>
+                    <p style="margin:2px 0 0; font-size:0.78rem; color:#94a3b8; font-weight:500;">Access granted by Volga Administrator</p>
+                </div>
+            </div>
+            <!-- Search bar -->
+            <input type="text" id="user-search-cloned-input" placeholder="Search credentials..." oninput="renderUserClonedProjects()" style="width:220px; padding:8px 12px; border:1.5px solid #e2e8f0; border-radius:8px; font-size:0.8rem; outline:none; height:36px;">
+        </div>
+        
+        <div class="table-responsive" style="border:1px solid #e2e8f0; border-radius:10px; overflow:hidden; background:#ffffff;">
+            <table style="width:100%; border-collapse:collapse; font-size:0.85rem; text-align:left;">
+                <thead>
+                    <tr style="background:#f8fafc; border-bottom:2.5px solid #e2e8f0; font-weight:700; color:#475569;">
+                        <th style="padding:10px 14px;">Project Name</th>
+                        <th style="padding:10px 14px;">Project URL</th>
+                        <th style="padding:10px 14px;">User ID</th>
+                        <th style="padding:10px 14px;">Password</th>
+                    </tr>
+                </thead>
+                <tbody id="user-cloned-projects-list-body">
+                    <!-- Loaded dynamically -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
 <!-- ── Admin Grid (shown only to admins) ────────────────────────────────── -->
 <div class="admin-grid" id="admin-grid" style="display:none;">
 
@@ -1559,6 +1681,63 @@ footer {
         </div>
     </div>
 
+    <!-- Cloned Projects Credentials card -->
+    <div class="admin-action-card orange-border" style="border-left: 4px solid #f97316;">
+        <div class="admin-card-header" onclick="toggleClonedProjects()">
+            <div class="admin-card-icon orange" style="background: rgba(249,115,22,0.1); color: #f97316;">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                </svg>
+            </div>
+            <div class="admin-card-text">
+                <div class="admin-card-title-row">
+                    <p class="admin-card-title orange" style="color: #ea580c; font-weight: 700; margin: 0; font-size: 0.95rem;">Cloned Projects Credentials</p>
+                    <span class="users-count-badge" id="cloned-count-badge" style="background: rgba(249,115,22,0.1); color: #ea580c; border: 1px solid rgba(249,115,22,0.2);">0 Projects</span>
+                </div>
+                <p class="admin-card-subtitle">Manage login details and repositories for cloned project versions</p>
+            </div>
+            <svg class="admin-card-chevron" id="cloned-proj-toggle-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="m9 6 6 6-6 6"/>
+            </svg>
+        </div>
+        <div id="cloned-projects-container" class="admin-card-body" style="display:none;">
+            <p style="font-size:0.84rem;color:#64748b;margin:0 0 14px;">Store credentials and reference URLs for cloned instances of Engine VR. Added details are synced in real-time.</p>
+            
+            <!-- Add Cloned Project Form -->
+            <div class="admin-create-row" style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:15px;">
+                <input type="text" id="new-cloned-name" placeholder="Project Name (e.g., Client-X Fork)…" style="flex:1; min-width:150px;">
+                <input type="url" id="new-cloned-url" placeholder="Repository/Project URL…" style="flex:1.5; min-width:200px;">
+                <input type="text" id="new-cloned-user" placeholder="User ID / Username…" style="flex:1; min-width:120px;">
+                <input type="text" id="new-cloned-pass" placeholder="Password…" style="flex:1; min-width:120px;">
+                <button onclick="addClonedProject()" class="btn-admin-create" style="background:#f97316;">+ Add Project</button>
+            </div>
+
+            <!-- Search Bar -->
+            <div style="margin-bottom: 12px; display:flex; gap:10px;">
+                <input type="text" id="search-cloned-input" placeholder="Search cloned projects by name or URL..." oninput="renderClonedProjects()" style="flex:1; padding:8px 12px; border:1.5px solid #e2e8f0; border-radius:8px; font-size:0.88rem; outline:none;">
+            </div>
+
+            <!-- Table List -->
+            <div class="table-responsive" style="border:1px solid #e2e8f0; border-radius:10px; overflow:hidden; background:#ffffff;">
+                <table style="width:100%; border-collapse:collapse; font-size:0.85rem; text-align:left;" id="cloned-projects-table">
+                    <thead>
+                        <tr style="background:#f8fafc; border-bottom:2.5px solid #e2e8f0; font-weight:700; color:#475569;">
+                            <th style="padding:10px 14px;">Project Name</th>
+                            <th style="padding:10px 14px;">Project URL</th>
+                            <th style="padding:10px 14px;">User ID</th>
+                            <th style="padding:10px 14px;">Password</th>
+                            <th style="padding:10px 14px; text-align:center; width:120px;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="cloned-projects-list-body">
+                        <!-- Cloned projects list elements inserted here by JS -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
 </div><!-- /.admin-grid -->
 
 <footer>
@@ -1626,7 +1805,8 @@ const dbHelper = {
                     displayName: doc.data().displayName || doc.id,
                     role: doc.data().role || 'user',
                     createdAt: doc.data().createdAt,
-                    assignedProjects: doc.data().assignedProjects || []
+                    assignedProjects: doc.data().assignedProjects || [],
+                    clonedAccess: doc.data().clonedAccess || false
                 }));
             } catch (e) {
                 console.error("Firestore read users failed, falling back to LocalStorage:", e);
@@ -1634,13 +1814,13 @@ const dbHelper = {
         }
         const storedUsers = localStorage.getItem('engineTrackerUsers');
         const ids = storedUsers ? JSON.parse(storedUsers) : [];
-        return ids.map(u => typeof u === 'string' ? { id: u, displayName: u, role: 'user', assignedProjects: [] } : { role: 'user', assignedProjects: [], ...u });
+        return ids.map(u => typeof u === 'string' ? { id: u, displayName: u, role: 'user', assignedProjects: [], clonedAccess: false } : { role: 'user', assignedProjects: [], clonedAccess: false, ...u });
     },
 
     async addUser(userId, displayName, role) {
         if (db) {
             try {
-                await db.collection('users').doc(userId).set({ displayName: displayName, role: role, createdAt: new Date().toISOString(), assignedProjects: [] });
+                await db.collection('users').doc(userId).set({ displayName: displayName, role: role, createdAt: new Date().toISOString(), assignedProjects: [], clonedAccess: false });
                 return;
             } catch (e) {
                 console.error("Firestore add user failed, falling back to LocalStorage:", e);
@@ -1648,7 +1828,7 @@ const dbHelper = {
         }
         const users = await this.getUsers();
         if (!users.find(u => u.id === userId)) {
-            users.push({ id: userId, displayName: displayName, role: role, createdAt: new Date().toISOString(), assignedProjects: [] });
+            users.push({ id: userId, displayName: displayName, role: role, createdAt: new Date().toISOString(), assignedProjects: [], clonedAccess: false });
             localStorage.setItem('engineTrackerUsers', JSON.stringify(users));
         }
     },
@@ -1696,6 +1876,83 @@ const dbHelper = {
         if (u) {
             u.assignedProjects = assignedProjects;
             localStorage.setItem('engineTrackerUsers', JSON.stringify(users));
+        }
+    },
+
+    async updateUserClonedAccess(userId, clonedAccess) {
+        if (db) {
+            try {
+                await db.collection('users').doc(userId).update({ clonedAccess });
+                return;
+            } catch (e) { console.error("Firestore update clonedAccess failed:", e); }
+        }
+        let users = await this.getUsers();
+        const u = users.find(u => u.id === userId);
+        if (u) {
+            u.clonedAccess = clonedAccess;
+            localStorage.setItem('engineTrackerUsers', JSON.stringify(users));
+        }
+    },
+
+    async getClonedProjects() {
+        if (db) {
+            try {
+                const snapshot = await db.collection('cloned_projects').orderBy('createdAt', 'asc').get();
+                return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            } catch (e) {
+                console.error("Firestore read cloned_projects failed, falling back to LocalStorage:", e);
+            }
+        }
+        const stored = localStorage.getItem('volgaClonedProjects');
+        return stored ? JSON.parse(stored) : [];
+    },
+
+    async addClonedProject(project) {
+        if (db) {
+            try {
+                const docRef = db.collection('cloned_projects').doc();
+                const recordData = { ...project, id: docRef.id, createdAt: new Date().toISOString() };
+                await docRef.set(recordData);
+                return recordData;
+            } catch (e) {
+                console.error("Firestore add cloned_project failed, falling back to LocalStorage:", e);
+            }
+        }
+        const projects = await this.getClonedProjects();
+        const newProj = { ...project, id: 'cp_' + Date.now(), createdAt: new Date().toISOString() };
+        projects.push(newProj);
+        localStorage.setItem('volgaClonedProjects', JSON.stringify(projects));
+        return newProj;
+    },
+
+    async removeClonedProject(id) {
+        if (db) {
+            try {
+                await db.collection('cloned_projects').doc(id).delete();
+                return;
+            } catch (e) {
+                console.error("Firestore remove cloned_project failed, falling back to LocalStorage:", e);
+            }
+        }
+        let projects = await this.getClonedProjects();
+        projects = projects.filter(p => p.id !== id);
+        localStorage.setItem('volgaClonedProjects', JSON.stringify(projects));
+    },
+
+    async updateClonedProject(id, updates) {
+        if (db) {
+            try {
+                await db.collection('cloned_projects').doc(id).update(updates);
+                return;
+            } catch (e) {
+                console.error("Firestore update cloned_project failed, falling back to LocalStorage:", e);
+            }
+        }
+        const projects = await this.getClonedProjects();
+        const index = projects.findIndex(p => p.id === id);
+        if (index > -1) {
+            projects[index] = { ...projects[index], ...updates };
+            localStorage.setItem('volgaClonedProjects', JSON.stringify(projects));
         }
     }
 };
@@ -1794,6 +2051,12 @@ document.addEventListener("DOMContentLoaded", async function() {
         const assigned = me ? (me.assignedProjects || []) : [];
         console.log('[Access] user:', userName, '| found:', me ? me.id : 'NOT FOUND', '| assigned:', assigned);
         filterCardsForUser(assigned);
+
+        if (me && me.clonedAccess) {
+            const card = document.getElementById('user-cloned-projects-card');
+            if (card) card.style.display = 'block';
+            await loadUserClonedProjects();
+        }
     }
 
     // Load active announcement
@@ -1805,8 +2068,290 @@ document.addEventListener("DOMContentLoaded", async function() {
         editor.style.display = 'none';
     }
 
+    if (userRole === 'admin') {
+        await loadClonedProjects();
+    }
+
     finishLoader();
 });
+
+// ─── Cloned Projects Registry Logic (Admin Only) ─────────────────────────────
+let clonedProjects = [];
+let editingClonedId = null;
+
+function toggleClonedProjects() {
+    const container = document.getElementById('cloned-projects-container');
+    const icon = document.getElementById('cloned-proj-toggle-icon');
+    if (container.style.display === 'none') {
+        container.style.display = 'block';
+        if (icon) icon.classList.add('rotated');
+        renderClonedProjects();
+    } else {
+        container.style.display = 'none';
+        if (icon) icon.classList.remove('rotated');
+    }
+}
+
+async function loadClonedProjects() {
+    clonedProjects = await dbHelper.getClonedProjects();
+    renderClonedProjects();
+}
+
+function renderClonedProjects() {
+    const badge = document.getElementById('cloned-count-badge');
+    if (badge) badge.textContent = clonedProjects.length + ' Project' + (clonedProjects.length !== 1 ? 's' : '');
+
+    const tbody = document.getElementById("cloned-projects-list-body");
+    if (!tbody) return;
+    tbody.innerHTML = "";
+
+    const searchVal = document.getElementById('search-cloned-input') ? document.getElementById('search-cloned-input').value.toLowerCase().trim() : "";
+    const filtered = clonedProjects.filter(p => 
+        (p.name || '').toLowerCase().includes(searchVal) ||
+        (p.url || '').toLowerCase().includes(searchVal) ||
+        (p.userid || '').toLowerCase().includes(searchVal)
+    );
+
+    if (filtered.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;color:#94a3b8;padding:15px;">No cloned projects found.</td></tr>`;
+        return;
+    }
+
+    filtered.forEach(p => {
+        const isEditing = editingClonedId === p.id;
+        if (isEditing) {
+            tbody.innerHTML += `
+                <tr style="border-bottom: 1px solid #f1f5f9; background: #fbfcfe;">
+                    <td style="padding: 10px 14px;"><input type="text" id="edit-cloned-name-${p.id}" value="${(p.name || '').replace(/"/g, '&quot;')}" style="width:100%; padding:6px; border:1px solid #cbd5e1; border-radius:6px; font-size:0.85rem;"></td>
+                    <td style="padding: 10px 14px;"><input type="url" id="edit-cloned-url-${p.id}" value="${(p.url || '').replace(/"/g, '&quot;')}" style="width:100%; padding:6px; border:1px solid #cbd5e1; border-radius:6px; font-size:0.85rem;"></td>
+                    <td style="padding: 10px 14px;"><input type="text" id="edit-cloned-user-${p.id}" value="${(p.userid || '').replace(/"/g, '&quot;')}" style="width:100%; padding:6px; border:1px solid #cbd5e1; border-radius:6px; font-size:0.85rem;"></td>
+                    <td style="padding: 10px 14px;"><input type="text" id="edit-cloned-pass-${p.id}" value="${(p.password || '').replace(/"/g, '&quot;')}" style="width:100%; padding:6px; border:1px solid #cbd5e1; border-radius:6px; font-size:0.85rem;"></td>
+                    <td style="padding: 10px 14px; text-align: center; white-space: nowrap;">
+                        <button onclick="saveClonedProject('${p.id}')" style="background:#10b981; color:white; border:none; padding:4px 8px; border-radius:4px; font-weight:700; cursor:pointer; font-size:0.75rem; margin-right:4px;">Save</button>
+                        <button onclick="cancelEditCloned()" style="background:#64748b; color:white; border:none; padding:4px 8px; border-radius:4px; font-weight:700; cursor:pointer; font-size:0.75rem;">Cancel</button>
+                    </td>
+                </tr>
+            `;
+        } else {
+            tbody.innerHTML += `
+                <tr style="border-bottom: 1px solid #f1f5f9;">
+                    <td style="padding: 10px 14px; font-weight: 600; color: #1e293b;">${p.name || ''}</td>
+                    <td style="padding: 10px 14px;">
+                        <div style="display:flex; align-items:center; gap:6px;">
+                            <a href="${p.url || '#'}" target="_blank" style="color:#2563eb; text-decoration:none; max-width:220px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${p.url || ''}">${p.url || '-'}</a>
+                            ${p.url ? `
+                                <button onclick="copyToClipboard('${(p.url || '').replace(/'/g, "\\'")}', 'URL')" style="background:none; border:none; color:#94a3b8; cursor:pointer; padding:2px; display:inline-flex; align-items:center; justify-content:center;" title="Copy URL">
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                                </button>
+                            ` : ''}
+                        </div>
+                    </td>
+                    <td style="padding: 10px 14px;">
+                        <div style="display:flex; align-items:center; gap:6px;">
+                            <span>${p.userid || '-'}</span>
+                            ${p.userid ? `
+                                <button onclick="copyToClipboard('${(p.userid || '').replace(/'/g, "\\'")}', 'User ID')" style="background:none; border:none; color:#94a3b8; cursor:pointer; padding:2px; display:inline-flex; align-items:center; justify-content:center;" title="Copy User ID">
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                                </button>
+                            ` : ''}
+                        </div>
+                    </td>
+                    <td style="padding: 10px 14px;">
+                        <div style="display:flex; align-items:center; gap:6px;">
+                            <span id="cloned-pass-mask-${p.id}">••••••••</span>
+                            <span id="cloned-pass-val-${p.id}" style="display:none;">${p.password || ''}</span>
+                            <button onclick="toggleClonedPassVisibility('${p.id}')" style="background:none; border:none; color:#94a3b8; cursor:pointer; padding:2px; display:inline-flex; align-items:center; justify-content:center;" title="Toggle Visibility">
+                                <svg id="cloned-pass-eye-${p.id}" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                            </button>
+                            ${p.password ? `
+                                <button onclick="copyToClipboard('${(p.password || '').replace(/'/g, "\\'")}', 'Password')" style="background:none; border:none; color:#94a3b8; cursor:pointer; padding:2px; display:inline-flex; align-items:center; justify-content:center;" title="Copy Password">
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                                </button>
+                            ` : ''}
+                        </div>
+                    </td>
+                    <td style="padding: 10px 14px; text-align: center; white-space: nowrap;">
+                        <button onclick="editClonedProject('${p.id}')" style="background:#3b82f6; color:white; border:none; padding:4px 8px; border-radius:4px; font-weight:700; cursor:pointer; font-size:0.75rem; margin-right:4px;">Edit</button>
+                        <button onclick="deleteClonedProject('${p.id}')" style="background:#ef4444; color:white; border:none; padding:4px 8px; border-radius:4px; font-weight:700; cursor:pointer; font-size:0.75rem;">Delete</button>
+                    </td>
+                </tr>
+            `;
+        }
+    });
+}
+
+function copyToClipboard(text, label) {
+    navigator.clipboard.writeText(text).then(() => {
+        showCustomAlert('Copied!', `${label} copied to clipboard successfully.`, false);
+    }).catch(err => {
+        console.error('Failed to copy text: ', err);
+    });
+}
+
+function toggleClonedPassVisibility(id) {
+    const mask = document.getElementById(`cloned-pass-mask-${id}`);
+    const val = document.getElementById(`cloned-pass-val-${id}`);
+    const eye = document.getElementById(`cloned-pass-eye-${id}`);
+    
+    if (mask.style.display === 'none') {
+        mask.style.display = 'inline';
+        val.style.display = 'none';
+        eye.innerHTML = `<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle>`;
+    } else {
+        mask.style.display = 'none';
+        val.style.display = 'inline';
+        eye.innerHTML = `
+            <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+            <line x1="1" y1="1" x2="23" y2="23"></line>
+        `;
+    }
+}
+
+async function addClonedProject() {
+    const nameInput = document.getElementById('new-cloned-name');
+    const urlInput = document.getElementById('new-cloned-url');
+    const userInput = document.getElementById('new-cloned-user');
+    const passInput = document.getElementById('new-cloned-pass');
+
+    const name = nameInput.value.trim();
+    const url = urlInput.value.trim();
+    const userid = userInput.value.trim();
+    const password = passInput.value.trim();
+
+    if (!name) {
+        showCustomAlert('Validation Error', 'Project Name is required.', true);
+        return;
+    }
+
+    const newProj = {
+        name,
+        url,
+        userid,
+        password
+    };
+
+    const added = await dbHelper.addClonedProject(newProj);
+    clonedProjects.push(added);
+
+    // Reset inputs
+    nameInput.value = '';
+    urlInput.value = '';
+    userInput.value = '';
+    passInput.value = '';
+
+    renderClonedProjects();
+    showCustomAlert('Success', 'Cloned project details saved successfully.', false);
+}
+
+function editClonedProject(id) {
+    editingClonedId = id;
+    renderClonedProjects();
+}
+
+function cancelEditCloned() {
+    editingClonedId = null;
+    renderClonedProjects();
+}
+
+async function saveClonedProject(id) {
+    const name = document.getElementById(`edit-cloned-name-${id}`).value.trim();
+    const url = document.getElementById(`edit-cloned-url-${id}`).value.trim();
+    const userid = document.getElementById(`edit-cloned-user-${id}`).value.trim();
+    const password = document.getElementById(`edit-cloned-pass-${id}`).value.trim();
+
+    if (!name) {
+        showCustomAlert('Validation Error', 'Project Name is required.', true);
+        return;
+    }
+
+    const updates = { name, url, userid, password };
+    await dbHelper.updateClonedProject(id, updates);
+
+    const index = clonedProjects.findIndex(p => p.id === id);
+    if (index > -1) {
+        clonedProjects[index] = { ...clonedProjects[index], ...updates };
+    }
+
+    editingClonedId = null;
+    renderClonedProjects();
+    showCustomAlert('Updated', 'Cloned project details updated successfully.', false);
+}
+
+async function deleteClonedProject(id) {
+    const confirmed = await showCustomConfirm('Delete Cloned Project', 'Are you sure you want to permanently delete this cloned project credentials details?', true);
+    if (confirmed) {
+        await dbHelper.removeClonedProject(id);
+        clonedProjects = clonedProjects.filter(p => p.id !== id);
+        renderClonedProjects();
+        showCustomAlert('Deleted', 'Cloned project credentials deleted successfully.', false);
+    }
+}
+
+// ─── User-Facing Read-Only Cloned Projects Logic ─────────────────────────────
+async function loadUserClonedProjects() {
+    clonedProjects = await dbHelper.getClonedProjects();
+    renderUserClonedProjects();
+}
+
+function renderUserClonedProjects() {
+    const tbody = document.getElementById("user-cloned-projects-list-body");
+    if (!tbody) return;
+    tbody.innerHTML = "";
+
+    const searchVal = document.getElementById('user-search-cloned-input') ? document.getElementById('user-search-cloned-input').value.toLowerCase().trim() : "";
+    const filtered = clonedProjects.filter(p => 
+        (p.name || '').toLowerCase().includes(searchVal) ||
+        (p.url || '').toLowerCase().includes(searchVal) ||
+        (p.userid || '').toLowerCase().includes(searchVal)
+    );
+
+    if (filtered.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;color:#94a3b8;padding:15px;">No credentials available.</td></tr>`;
+        return;
+    }
+
+    filtered.forEach(p => {
+        tbody.innerHTML += `
+            <tr style="border-bottom: 1px solid #f1f5f9;">
+                <td style="padding: 10px 14px; font-weight: 600; color: #1e293b;">${p.name || ''}</td>
+                <td style="padding: 10px 14px;">
+                    <div style="display:flex; align-items:center; gap:6px;">
+                        <a href="${p.url || '#'}" target="_blank" style="color:#2563eb; text-decoration:none; max-width:220px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${p.url || ''}">${p.url || '-'}</a>
+                        ${p.url ? `
+                            <button onclick="copyToClipboard('${(p.url || '').replace(/'/g, "\\'")}', 'URL')" style="background:none; border:none; color:#94a3b8; cursor:pointer; padding:2px; display:inline-flex; align-items:center; justify-content:center;" title="Copy URL">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                            </button>
+                        ` : ''}
+                    </div>
+                </td>
+                <td style="padding: 10px 14px;">
+                    <div style="display:flex; align-items:center; gap:6px;">
+                        <span>${p.userid || '-'}</span>
+                        ${p.userid ? `
+                            <button onclick="copyToClipboard('${(p.userid || '').replace(/'/g, "\\'")}', 'User ID')" style="background:none; border:none; color:#94a3b8; cursor:pointer; padding:2px; display:inline-flex; align-items:center; justify-content:center;" title="Copy User ID">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                            </button>
+                        ` : ''}
+                    </div>
+                </td>
+                <td style="padding: 10px 14px;">
+                    <div style="display:flex; align-items:center; gap:6px;">
+                        <span id="cloned-pass-mask-${p.id}">••••••••</span>
+                        <span id="cloned-pass-val-${p.id}" style="display:none;">${p.password || ''}</span>
+                        <button onclick="toggleClonedPassVisibility('${p.id}')" style="background:none; border:none; color:#94a3b8; cursor:pointer; padding:2px; display:inline-flex; align-items:center; justify-content:center;" title="Toggle Visibility">
+                            <svg id="cloned-pass-eye-${p.id}" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                        </button>
+                        ${p.password ? `
+                            <button onclick="copyToClipboard('${(p.password || '').replace(/'/g, "\\'")}', 'Password')" style="background:none; border:none; color:#94a3b8; cursor:pointer; padding:2px; display:inline-flex; align-items:center; justify-content:center;" title="Copy Password">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                            </button>
+                        ` : ''}
+                    </div>
+                </td>
+            </tr>
+        `;
+    });
+}
 
 // ─── Filter project cards for regular users ──────────────────────────────────
 function filterCardsForUser(assignedProjects) {
@@ -1957,6 +2502,23 @@ function renderAuthUsers() {
                 </div>
             ` : `<div style="margin-top:8px;border-top:1px solid #f0f4f8;padding-top:6px;font-size:0.75rem;color:#94a3b8;font-style:italic;">Admin — access to all projects</div>`;
 
+            const clonedAccessToggle = u.role !== 'admin' ? `
+                <div style="margin-top:10px; border-top:1px solid #f0f4f8; padding-top:10px; display:flex; justify-content:space-between; align-items:center;">
+                    <span style="font-size:0.72rem;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:0.5px;">Cloned Project Access</span>
+                    <label class="uiverse-toggle-label">
+                        <input type="checkbox" class="uiverse-toggle-input" ${u.clonedAccess ? 'checked' : ''} onchange="toggleClonedAccess('${u.id}', this.checked)">
+                        <div class="uiverse-toggle-track">
+                            <svg class="uiverse-toggle-svg-right" viewBox="0 0 100 100">
+                                <path d="M50,18A19.9,19.9,0,0,0,30,38v8a8,8,0,0,0-8,8V74a8,8,0,0,0,8,8H70a8,8,0,0,0,8-8V54a8,8,0,0,0-8-8H38V38a12,12,0,0,1,23.6-3,4,4,0,1,0,7.8-2A20.1,20.1,0,0,0,50,18Z" fill="#111827"></path>
+                            </svg>
+                            <svg class="uiverse-toggle-svg-left" viewBox="0 0 100 100">
+                                <path d="M30,46V38a20,20,0,0,1,40,0v8a8,8,0,0,1,8,8V74a8,8,0,0,1-8,8H30a8,8,0,0,1-8-8V54A8,8,0,0,1,30,46Zm32-8v8H38V38a12,12,0,0,1,24,0Z" fill="#111827"></path>
+                            </svg>
+                        </div>
+                    </label>
+                </div>
+            ` : '';
+
             grid.innerHTML += `
                 <div class="user-desk" id="user-desk-${u.id}" style="flex-direction:column;align-items:stretch;gap:6px;">
                     <!-- Top Line: Display Name & Role + Action Buttons -->
@@ -2001,6 +2563,7 @@ function renderAuthUsers() {
                         <button onclick="cancelEditDisplayName('${u.id}')" style="width:auto;background:#94a3b8;padding:5px 10px;font-size:0.8rem;border-radius:6px;color:white;border:none;cursor:pointer;font-family:inherit;">Cancel</button>
                     </div>
                     ${projectCheckboxes}
+                    ${clonedAccessToggle}
                 </div>`;
         });
     }
@@ -2015,6 +2578,15 @@ async function toggleProjectAccess(userId, projectId, granted) {
     await dbHelper.updateUserProjects(userId, assigned);
     user.assignedProjects = assigned;
     renderAuthUsers();
+}
+
+async function toggleClonedAccess(userId, hasAccess) {
+    await dbHelper.updateUserClonedAccess(userId, hasAccess);
+    const user = authUsers.find(u => u.id === userId);
+    if (user) {
+        user.clonedAccess = hasAccess;
+    }
+    showCustomAlert('Access Updated', `Cloned projects credentials access has been ${hasAccess ? 'granted' : 'revoked'} for this user.`, false);
 }
 
 function toggleUserIdVisibility(userId) {
