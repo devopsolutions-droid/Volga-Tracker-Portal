@@ -24,10 +24,12 @@
     --c-completed:   #d1fae5;
     --c-progress:    #dbeafe;
     --c-notstarted:  #fef3c7;
+    --c-notworking:  #fee2e2;
 
     --t-completed:   #065f46;
     --t-progress:    #1e40af;
     --t-notstarted:  #92400e;
+    --t-notworking:  #991b1b;
 }
 
 body {
@@ -145,6 +147,10 @@ body {
 .stat-card.notstarted .stat-icon-wrapper { background: rgba(245,158,11,0.10); color: #f59e0b; }
 .stat-card.notstarted .stat-decoration { background: #f59e0b; }
 
+.stat-card.notworking { border-bottom: 4px solid #ef4444; }
+.stat-card.notworking .stat-icon-wrapper { background: rgba(239,68,68,0.10); color: #ef4444; }
+.stat-card.notworking .stat-decoration { background: #ef4444; }
+
 .stat-card.conflicts.no-conflict { border-bottom: 4px solid #10b981; }
 .stat-card.conflicts.no-conflict .stat-icon-wrapper { background: rgba(16,185,129,0.10); color: #10b981; }
 .stat-card.conflicts.no-conflict .stat-decoration { background: #10b981; }
@@ -214,6 +220,7 @@ tr:hover { background-color: #f1f5f9; }
 .completed { background: var(--c-completed); color: var(--t-completed); }
 .progress { background: var(--c-progress); color: var(--t-progress); }
 .notstarted { background: var(--c-notstarted); color: var(--t-notstarted); }
+.notworking { background: var(--c-notworking); color: var(--t-notworking); }
 
 /* Table Action Buttons */
 .action-buttons { display: flex; gap: 6px; }
@@ -464,6 +471,14 @@ details[open] .accordion-chevron { transform: rotate(180deg); }
             <div class="stat-value" id="stat-notstarted">0</div>
             <div class="stat-decoration"></div>
         </div>
+        <div class="stat-card notworking">
+            <div class="stat-header">
+                <div class="stat-icon-wrapper"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"></line></svg></div>
+                <div class="stat-title">Not Working</div>
+            </div>
+            <div class="stat-value" id="stat-notworking">0</div>
+            <div class="stat-decoration"></div>
+        </div>
         <div class="stat-card conflicts no-conflict" id="stat-conflict-card" onclick="openConflictModal()" style="cursor: pointer;">
             <div class="stat-header">
                 <div class="stat-icon-wrapper"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg></div>
@@ -503,6 +518,7 @@ details[open] .accordion-chevron { transform: rotate(180deg); }
                 <option>Not Started</option>
                 <option>In Progress</option>
                 <option>Completed</option>
+                <option>Not Working</option>
             </select>
             <input id="remarks" placeholder="Remarks (Optional)">
             <input id="drive-url" type="url" placeholder="Drive URL (Optional)" autocomplete="off">
@@ -521,6 +537,7 @@ details[open] .accordion-chevron { transform: rotate(180deg); }
                 <option>Not Started</option>
                 <option>In Progress</option>
                 <option>Completed</option>
+                <option>Not Working</option>
             </select>
         </div>
 
@@ -925,8 +942,9 @@ function getTableAvatar(name) {
     return `<div style="display:flex;align-items:center;"><span style="display:flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:50%;background:${color};color:white;font-size:0.8rem;font-weight:bold;margin-right:8px;">${initial}</span><span>${firstWord}</span></div>`;
 }
 function statusClass(s) {
-    if (s === "Completed") return "completed";
+    if (s === "Completed")   return "completed";
     if (s === "In Progress") return "progress";
+    if (s === "Not Working") return "notworking";
     return "notstarted";
 }
 
@@ -935,6 +953,7 @@ function updateDashboard(filteredData) {
     document.getElementById('stat-notstarted').innerText = filteredData.filter(d => d.status === 'Not Started').length;
     document.getElementById('stat-completed').innerText = filteredData.filter(d => d.status === 'Completed').length;
     document.getElementById('stat-progress').innerText = filteredData.filter(d => d.status === 'In Progress').length;
+    document.getElementById('stat-notworking').innerText = filteredData.filter(d => d.status === 'Not Working').length;
 }
 function updateUserList() {
     const select = document.getElementById('existing-user');
@@ -1003,7 +1022,7 @@ function render() {
                     <td><input type="date" id="inline-assigned-${d.id}" value="${d.assigned}" ${userRole === 'admin' ? '' : 'disabled'}></td>
                     <td><input type="date" id="inline-target-${d.id}" value="${d.target}" ${userRole === 'admin' ? '' : 'disabled'}></td>
                     <td><input type="date" id="inline-completion-${d.id}" value="${d.completion}"></td>
-                    <td><select id="inline-status-${d.id}"><option ${d.status==='Not Started'?'selected':''}>Not Started</option><option ${d.status==='In Progress'?'selected':''}>In Progress</option><option ${d.status==='Completed'?'selected':''}>Completed</option></select></td>
+                    <td><select id="inline-status-${d.id}"><option ${d.status==='Not Started'?'selected':''}>Not Started</option><option ${d.status==='In Progress'?'selected':''}>In Progress</option><option ${d.status==='Completed'?'selected':''}>Completed</option><option ${d.status==='Not Working'?'selected':''}>Not Working</option></select></td>
                     <td><input type="text" id="inline-remarks-${d.id}" value="${d.remarks || ''}"></td>
                     <td><input type="url" id="inline-drive-${d.id}" value="${d.driveUrl || ''}" placeholder="Drive Link"></td>
                     <td><div class="action-buttons">
