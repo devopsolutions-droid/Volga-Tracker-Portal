@@ -785,7 +785,7 @@ footer {
     border-left: 4px solid var(--primary);
     border-radius: 12px;
     padding: 14px 20px;
-    margin-bottom: 20px;
+    margin-bottom: 12px;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -793,6 +793,13 @@ footer {
     box-shadow: var(--shadow-sm);
     animation: slideDownBanner 0.4s ease-out;
 }
+.announcement-banner.personal {
+    background: linear-gradient(90deg, #fffbeb 0%, #fefce8 100%);
+    border-color: #fde68a;
+    border-left-color: #f59e0b;
+    margin-bottom: 20px;
+}
+.announcement-banner.personal .announcement-content { color: #92400e; }
 @keyframes slideDownBanner {
     from { transform: translateY(-10px); opacity: 0; }
     to { transform: translateY(0); opacity: 1; }
@@ -815,8 +822,109 @@ footer {
     line-height: 1;
     transition: color 0.2s;
 }
-.announcement-close:hover {
-    color: #2563eb;
+.announcement-close:hover { color: #2563eb; }
+.announcement-banner.personal .announcement-close { color: #fcd34d; }
+.announcement-banner.personal .announcement-close:hover { color: #d97706; }
+
+/* Personal announcement badge on hamburger */
+.notif-badge {
+    position: absolute;
+    top: -4px;
+    right: -4px;
+    width: 16px;
+    height: 16px;
+    background: #ef4444;
+    border-radius: 50%;
+    font-size: 0.6rem;
+    font-weight: 800;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid #fff;
+    pointer-events: none;
+    z-index: 10;
+}
+
+/* Drawer announcement tabs */
+.announce-tabs {
+    display: flex;
+    background: #f1f5f9;
+    border-radius: 8px;
+    padding: 3px;
+    margin-bottom: 14px;
+    gap: 2px;
+}
+.announce-tab-btn {
+    flex: 1;
+    background: transparent;
+    border: none;
+    padding: 7px 8px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--text-muted);
+    cursor: pointer;
+    border-radius: 6px;
+    transition: all 0.2s;
+    font-family: inherit;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    position: relative;
+}
+.announce-tab-btn.active {
+    background: #fff;
+    color: var(--primary);
+    box-shadow: var(--shadow-sm);
+}
+.announce-tab-pane { display: none; }
+.announce-tab-pane.active { display: block; }
+
+/* Personal message cards in drawer */
+.personal-msg-card {
+    background: #fff;
+    border: 1px solid var(--border);
+    border-left: 3px solid #f59e0b;
+    border-radius: 8px;
+    padding: 10px 12px;
+    margin-bottom: 8px;
+    box-shadow: var(--shadow-sm);
+}
+.personal-msg-card.unread { border-left-color: #3b82f6; background: #f0f7ff; }
+.personal-msg-card-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 5px;
+    gap: 8px;
+}
+.personal-msg-card-to {
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+}
+.personal-msg-card-date {
+    font-size: 0.68rem;
+    color: #94a3b8;
+    white-space: nowrap;
+}
+.personal-msg-card-text {
+    font-size: 0.85rem;
+    color: var(--text-main);
+    line-height: 1.45;
+    word-break: break-word;
+}
+.personal-msg-unread-dot {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: #3b82f6;
+    flex-shrink: 0;
+    display: inline-block;
+    margin-right: 4px;
+    vertical-align: middle;
 }
 
 /* Audit Logs */
@@ -1502,21 +1610,54 @@ footer {
         <!-- ── SECTION 3: ANNOUNCEMENTS ── -->
         <div class="drawer-section-label" id="announcements-section-label">Announcements</div>
 
-        <div class="drawer-card">
-            <div class="drawer-card-title">Current Announcement</div>
-            <div id="active-broadcast-message" style="font-size: 0.88rem; line-height: 1.4; color: var(--text-main); word-break: break-word;">
-                <em>No active announcement.</em>
-            </div>
+        <!-- Announcement Tabs -->
+        <div class="announce-tabs">
+            <button class="announce-tab-btn active" id="ann-tab-global" onclick="switchAnnounceTab('global')">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+                Global
+            </button>
+            <button class="announce-tab-btn" id="ann-tab-personal" onclick="switchAnnounceTab('personal')">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                Personal
+                <span id="personal-ann-tab-badge" style="display:none;background:#ef4444;color:#fff;border-radius:20px;font-size:0.6rem;font-weight:800;padding:1px 5px;"></span>
+            </button>
         </div>
-        <div class="drawer-card" id="admin-broadcast-editor" style="display: none;">
-            <div class="drawer-card-title">Publish New Announcement</div>
-            <div class="broadcast-form">
-                <textarea id="broadcast-input" placeholder="Type announcement message here..."></textarea>
-                <div style="display:flex;gap:8px;">
-                    <button class="btn-broadcast-publish" style="flex:1;" onclick="publishBroadcast()">Publish</button>
-                    <button class="btn-broadcast-publish" style="background:#ef4444;" onmouseover="this.style.background='#dc2626'" onmouseout="this.style.background='#ef4444'" onclick="deleteBroadcast()" title="Delete announcement">Delete</button>
+
+        <!-- Global Tab -->
+        <div class="announce-tab-pane active" id="ann-pane-global">
+            <div class="drawer-card">
+                <div class="drawer-card-title">Current Announcement</div>
+                <div id="active-broadcast-message" style="font-size: 0.88rem; line-height: 1.4; color: var(--text-main); word-break: break-word;">
+                    <em>No active announcement.</em>
                 </div>
             </div>
+            <div class="drawer-card" id="admin-broadcast-editor" style="display: none;">
+                <div class="drawer-card-title">Publish New Announcement</div>
+                <div class="broadcast-form">
+                    <textarea id="broadcast-input" placeholder="Type announcement message here..."></textarea>
+                    <div style="display:flex;gap:8px;">
+                        <button class="btn-broadcast-publish" style="flex:1;" onclick="publishBroadcast()">Publish</button>
+                        <button class="btn-broadcast-publish" style="background:#ef4444;" onmouseover="this.style.background='#dc2626'" onmouseout="this.style.background='#ef4444'" onclick="deleteBroadcast()" title="Delete announcement">Delete</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Personal Tab -->
+        <div class="announce-tab-pane" id="ann-pane-personal">
+            <div id="personal-send-form" style="display:none;">
+                <div class="drawer-card" style="margin-bottom:10px;">
+                    <div class="drawer-card-title">Send Personal Message</div>
+                    <div style="display:flex;flex-direction:column;gap:8px;">
+                        <select id="personal-ann-user-select" style="width:100%;padding:8px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:0.85rem;font-family:inherit;background:#f8fafc;color:var(--text-main);appearance:none;background-image:url(&quot;data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23555' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e&quot;);background-repeat:no-repeat;background-position:right 10px center;background-size:12px;padding-right:30px;">
+                            <option value="">Select user...</option>
+                        </select>
+                        <textarea id="personal-ann-input" placeholder="Type personal message..." style="width:100%;height:80px;padding:8px 10px;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:0.85rem;resize:none;background:#f8fafc;box-sizing:border-box;transition:all 0.2s;"></textarea>
+                        <button class="btn-broadcast-publish" onclick="sendPersonalAnnouncement()">Send Message</button>
+                    </div>
+                </div>
+            </div>
+            <div id="personal-ann-list"><em style="font-size:0.85rem;color:#94a3b8;">Loading...</em></div>
         </div>
 
     </div>
@@ -1558,10 +1699,11 @@ footer {
 <nav class="navbar">
     <div style="display:flex; align-items:center; gap:12px; flex:1; min-width:0;">
         <!-- Hamburger toggle -->
-        <button class="navbar-drawer-btn" id="drawer-toggle-btn" onclick="toggleAdminDrawer()" title="Open Panel">
+        <button class="navbar-drawer-btn" id="drawer-toggle-btn" onclick="toggleAdminDrawer()" title="Open Panel" style="position:relative;">
             <span class="hamburger-bar"></span>
             <span class="hamburger-bar"></span>
             <span class="hamburger-bar"></span>
+            <span class="notif-badge" id="hamburger-notif-badge" style="display:none;"></span>
         </button>
         <!-- Brand — now left-anchored next to hamburger -->
         <div class="brand">
@@ -1601,6 +1743,17 @@ footer {
         <span id="announcement-banner-text"></span>
     </div>
     <button class="announcement-close" onclick="closeAnnouncementBanner()">&times;</button>
+</div>
+<!-- Personal Announcement Banner -->
+<div class="announcement-banner personal" id="personal-announcement-banner" style="display: none;">
+    <div class="announcement-content">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="color:#f59e0b; flex-shrink:0;">
+            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+            <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+        </svg>
+        <span id="personal-announcement-banner-text"></span>
+    </div>
+    <button class="announcement-close" onclick="closePersonalBanner()">&times;</button>
 </div>
 
 <!-- ── Hero Banner ──────────────────────────────────────────────────────── -->
@@ -2345,11 +2498,19 @@ document.addEventListener("DOMContentLoaded", async function() {
 
     // Load active announcement
     await loadAnnouncement();
+    await loadPersonalAnnouncements();
 
     // Show announcement publisher for Admin only (starts hidden, toggled by button)
     const editor = document.getElementById('admin-broadcast-editor');
     if (editor) {
         editor.style.display = 'none';
+    }
+
+    // Show personal send form for admins, populate user dropdown
+    if (userRole === 'admin') {
+        const sendForm = document.getElementById('personal-send-form');
+        if (sendForm) sendForm.style.display = 'block';
+        populatePersonalUserDropdown();
     }
 
     if (userRole === 'admin') {
@@ -3920,6 +4081,7 @@ function toggleAdminDrawer() {
         overlay.classList.add('active');
         if (toggleBtn) toggleBtn.classList.add('active');
         loadAnnouncement();
+        loadPersonalAnnouncements();
     }
 }
 
@@ -4008,6 +4170,187 @@ function closeAnnouncementBanner() {
     const banner = document.getElementById('global-announcement-banner');
     if (banner) banner.style.display = 'none';
     sessionStorage.setItem('announcementClosed', 'true');
+}
+
+function closePersonalBanner() {
+    const banner = document.getElementById('personal-announcement-banner');
+    if (banner) banner.style.display = 'none';
+    sessionStorage.setItem('personalBannerClosed', 'true');
+}
+
+// ─── Announcement Tab Switcher ────────────────────────────────────────────────
+function switchAnnounceTab(tab) {
+    document.getElementById('ann-tab-global').classList.toggle('active', tab === 'global');
+    document.getElementById('ann-tab-personal').classList.toggle('active', tab === 'personal');
+    document.getElementById('ann-pane-global').classList.toggle('active', tab === 'global');
+    document.getElementById('ann-pane-personal').classList.toggle('active', tab === 'personal');
+    if (tab === 'personal') {
+        loadPersonalAnnouncements();
+        if (userRole === 'admin') populatePersonalUserDropdown();
+    }
+}
+
+// ─── Personal Announcements Logic ────────────────────────────────────────────
+let _personalAnns = [];
+
+function populatePersonalUserDropdown() {
+    const sel = document.getElementById('personal-ann-user-select');
+    if (!sel) return;
+    sel.innerHTML = '<option value="">Select user...</option>';
+    authUsers.filter(u => u.role !== 'admin').forEach(u => {
+        const opt = document.createElement('option');
+        opt.value = u.id;
+        opt.textContent = u.displayName;
+        sel.appendChild(opt);
+    });
+}
+
+async function loadPersonalAnnouncements() {
+    if (!db) { renderPersonalAnnouncements([]); return; }
+    try {
+        let query;
+        if (userRole === 'admin') {
+            query = await db.collection('user_announcements').orderBy('sentAt', 'desc').get();
+        } else {
+            const myId = sessionStorage.getItem('userid');
+            if (!myId) {
+                // fallback: try matching via authUsers if userid not in session (old session)
+                const me = authUsers.find(u => u.displayName === userName)
+                         || authUsers.find(u => u.displayName.toLowerCase().trim() === userName.toLowerCase().trim());
+                if (!me) { renderPersonalAnnouncements([]); return; }
+                query = await db.collection('user_announcements')
+                    .where('toUserId', '==', me.id)
+                    .orderBy('sentAt', 'desc').get();
+            } else {
+                query = await db.collection('user_announcements')
+                    .where('toUserId', '==', myId)
+                    .get();
+            }
+        }
+        _personalAnns = query.docs.map(d => ({ id: d.id, ...d.data() }));
+    } catch(e) {
+        console.error('Failed to load personal announcements:', e);
+        _personalAnns = [];
+    }
+    renderPersonalAnnouncements(_personalAnns);
+    updatePersonalBadge();
+    showPersonalBanner();
+}
+
+function renderPersonalAnnouncements(anns) {
+    const list = document.getElementById('personal-ann-list');
+    if (!list) return;
+    if (!anns.length) {
+        list.innerHTML = '<div style="text-align:center;padding:20px 0;color:#94a3b8;font-size:0.85rem;"><em>No personal messages.</em></div>';
+        return;
+    }
+    list.innerHTML = anns.map(a => {
+        const isUnread = !a.read;
+        const date = a.sentAt ? new Date(a.sentAt).toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' }) : '';
+        const deleteBtn = userRole === 'admin'
+            ? `<button onclick="deletePersonalAnnouncement('${a.id}')" style="background:none;border:none;cursor:pointer;color:#94a3b8;padding:2px;display:flex;align-items:center;flex-shrink:0;transition:color 0.2s;" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='#94a3b8'" title="Delete">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+               </button>` : '';
+        const toLabel = userRole === 'admin'
+            ? `<span class="personal-msg-card-to">To: ${a.toDisplayName || a.toUserId}</span>`
+            : `<span class="personal-msg-card-to">${isUnread ? '<span class="personal-msg-unread-dot"></span>' : ''}From Admin</span>`;
+        return `<div class="personal-msg-card ${isUnread ? 'unread' : ''}" id="pmsg-${a.id}">
+            <div class="personal-msg-card-meta">
+                ${toLabel}
+                <div style="display:flex;align-items:center;gap:6px;">
+                    <span class="personal-msg-card-date">${date}</span>
+                    ${deleteBtn}
+                </div>
+            </div>
+            <div class="personal-msg-card-text">${a.message}</div>
+        </div>`;
+    }).join('');
+    if (userRole !== 'admin') {
+        anns.filter(a => !a.read).forEach(a => markPersonalAsRead(a.id));
+    }
+}
+
+async function markPersonalAsRead(id) {
+    if (!db) return;
+    try {
+        await db.collection('user_announcements').doc(id).update({ read: true });
+        const ann = _personalAnns.find(a => a.id === id);
+        if (ann) ann.read = true;
+    } catch(e) {}
+    updatePersonalBadge();
+}
+
+function updatePersonalBadge() {
+    const unreadCount = _personalAnns.filter(a => !a.read).length;
+    const badge = document.getElementById('hamburger-notif-badge');
+    const tabBadge = document.getElementById('personal-ann-tab-badge');
+    if (badge) {
+        badge.style.display = unreadCount > 0 ? 'flex' : 'none';
+        badge.textContent = unreadCount > 9 ? '9+' : unreadCount;
+    }
+    if (tabBadge) {
+        tabBadge.style.display = unreadCount > 0 ? 'inline' : 'none';
+        tabBadge.textContent = unreadCount;
+    }
+}
+
+function showPersonalBanner() {
+    if (userRole === 'admin') return;
+    if (sessionStorage.getItem('personalBannerClosed') === 'true') return;
+    const unread = _personalAnns.filter(a => !a.read);
+    if (!unread.length) return;
+    const latest = unread[0];
+    const banner = document.getElementById('personal-announcement-banner');
+    const text = document.getElementById('personal-announcement-banner-text');
+    if (banner && text) {
+        text.innerText = latest.message;
+        banner.style.display = 'flex';
+    }
+}
+
+async function sendPersonalAnnouncement() {
+    if (userRole !== 'admin') return;
+    const sel = document.getElementById('personal-ann-user-select');
+    const input = document.getElementById('personal-ann-input');
+    const userId = sel ? sel.value.trim() : '';
+    const msg = input ? input.value.trim() : '';
+    if (!userId) { showCustomAlert('Validation', 'Please select a user.', true); return; }
+    if (!msg) { showCustomAlert('Validation', 'Message cannot be empty.', true); return; }
+    const user = authUsers.find(u => u.id === userId);
+    if (!db) { showCustomAlert('Error', 'Firestore not available.', true); return; }
+    try {
+        const docRef = db.collection('user_announcements').doc();
+        const record = {
+            id: docRef.id,
+            toUserId: userId,
+            toDisplayName: user ? user.displayName : userId,
+            message: msg,
+            sentAt: new Date().toISOString(),
+            sentBy: userName,
+            read: false
+        };
+        await docRef.set(record);
+        _personalAnns.unshift(record);
+        if (sel) sel.value = '';
+        if (input) input.value = '';
+        renderPersonalAnnouncements(_personalAnns);
+        showCustomAlert('Sent', `Message sent to ${record.toDisplayName}.`, false);
+    } catch(e) {
+        console.error('Failed to send personal announcement:', e);
+        showCustomAlert('Error', 'Failed to send message.', true);
+    }
+}
+
+async function deletePersonalAnnouncement(id) {
+    const confirmed = await showCustomConfirm('Delete Message', 'Permanently delete this personal message?', true, 'Delete', false);
+    if (!confirmed) return;
+    if (db) {
+        try { await db.collection('user_announcements').doc(id).delete(); } catch(e) {}
+    }
+    _personalAnns = _personalAnns.filter(a => a.id !== id);
+    renderPersonalAnnouncements(_personalAnns);
+    updatePersonalBadge();
+    showCustomAlert('Deleted', 'Message deleted.', false);
 }
 
 function toggleBroadcastEditor() {

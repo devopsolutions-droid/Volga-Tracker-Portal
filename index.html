@@ -468,6 +468,7 @@
                     sessionStorage.setItem('role', match.role || 'user');
                     // Store the Display Name (not the User ID) for use in the tracker
                     sessionStorage.setItem('username', match.displayName);
+                    sessionStorage.setItem('userid', match.id);
                     
                     showLoader(() => {
                         window.location.href = 'dashboard.html';
