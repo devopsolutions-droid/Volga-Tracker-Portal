@@ -1335,6 +1335,20 @@ details[open] .accordion-chevron {
   outline: 2px solid var(--primary);
   outline-offset: 2px;
 }
+
+.btn-neumorphic-success {
+    background: #10b981 !important;
+    box-shadow: 0 4px 0 #065f46 !important;
+    top: 0 !important;
+}
+@keyframes copyBounce {
+    0% { transform: scale(0.6); opacity: 0; }
+    50% { transform: scale(1.3); }
+    100% { transform: scale(1); opacity: 1; }
+}
+.copy-success-bounce {
+    animation: copyBounce 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
 </style>
 </head>
 <body>
@@ -2518,6 +2532,25 @@ async function saveRecord() {
 
     resetForm();
     render();
+    triggerNeumorphicButtonFeedback(saveBtn, 'Added!');
+}
+
+function triggerNeumorphicButtonFeedback(btn, successText) {
+    if (!btn) return;
+    const originalHTML = btn.innerHTML;
+    btn.innerHTML = `
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="copy-success-bounce" style="margin-right:4px;">
+            <polyline points="20 6 9 17 4 12"></polyline>
+        </svg>
+        ${successText}
+    `;
+    btn.classList.add('btn-neumorphic-success');
+    btn.style.pointerEvents = 'none';
+    setTimeout(() => {
+        btn.innerHTML = originalHTML;
+        btn.classList.remove('btn-neumorphic-success');
+        btn.style.pointerEvents = '';
+    }, 1500);
 }
 
 // Enable Inline Edit
