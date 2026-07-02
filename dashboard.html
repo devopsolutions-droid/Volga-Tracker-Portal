@@ -439,6 +439,15 @@ body {
 @keyframes modalFadeIn  { from { opacity: 0; } to { opacity: 1; } }
 @keyframes modalScaleIn { from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
 
+@keyframes copyBounce {
+    0% { transform: scale(0.6); opacity: 0; }
+    50% { transform: scale(1.3); }
+    100% { transform: scale(1); opacity: 1; }
+}
+.copy-success-bounce {
+    animation: copyBounce 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
 /* ── Footer ──────────────────────────────────────────────────────────────── */
 footer {
     margin-top: 48px; text-align: center;
@@ -2140,7 +2149,7 @@ function renderClonedProjects() {
                         <div style="display:flex; align-items:center; gap:6px;">
                             <a href="${p.url || '#'}" target="_blank" style="color:#2563eb; text-decoration:none; max-width:220px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${p.url || ''}">${p.url || '-'}</a>
                             ${p.url ? `
-                                <button onclick="copyToClipboard('${(p.url || '').replace(/'/g, "\\'")}', 'URL')" style="background:none; border:none; color:#94a3b8; cursor:pointer; padding:2px; display:inline-flex; align-items:center; justify-content:center;" title="Copy URL">
+                                <button onclick="copyToClipboard(event, '${(p.url || '').replace(/'/g, "\\'")}', 'URL')" style="background:none; border:none; color:#94a3b8; cursor:pointer; padding:2px; display:inline-flex; align-items:center; justify-content:center;" title="Copy URL">
                                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
                                 </button>
                             ` : ''}
@@ -2150,7 +2159,7 @@ function renderClonedProjects() {
                         <div style="display:flex; align-items:center; gap:6px;">
                             <span>${p.userid || '-'}</span>
                             ${p.userid ? `
-                                <button onclick="copyToClipboard('${(p.userid || '').replace(/'/g, "\\'")}', 'User ID')" style="background:none; border:none; color:#94a3b8; cursor:pointer; padding:2px; display:inline-flex; align-items:center; justify-content:center;" title="Copy User ID">
+                                <button onclick="copyToClipboard(event, '${(p.userid || '').replace(/'/g, "\\'")}', 'User ID')" style="background:none; border:none; color:#94a3b8; cursor:pointer; padding:2px; display:inline-flex; align-items:center; justify-content:center;" title="Copy User ID">
                                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
                                 </button>
                             ` : ''}
@@ -2164,7 +2173,7 @@ function renderClonedProjects() {
                                 <svg id="cloned-pass-eye-${p.id}" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
                             </button>
                             ${p.password ? `
-                                <button onclick="copyToClipboard('${(p.password || '').replace(/'/g, "\\'")}', 'Password')" style="background:none; border:none; color:#94a3b8; cursor:pointer; padding:2px; display:inline-flex; align-items:center; justify-content:center;" title="Copy Password">
+                                <button onclick="copyToClipboard(event, '${(p.password || '').replace(/'/g, "\\'")}', 'Password')" style="background:none; border:none; color:#94a3b8; cursor:pointer; padding:2px; display:inline-flex; align-items:center; justify-content:center;" title="Copy Password">
                                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
                                 </button>
                             ` : ''}
@@ -2180,9 +2189,22 @@ function renderClonedProjects() {
     });
 }
 
-function copyToClipboard(text, label) {
+function copyToClipboard(event, text, label) {
     navigator.clipboard.writeText(text).then(() => {
-        showCustomAlert('Copied!', `${label} copied to clipboard successfully.`, false);
+        const btn = event.currentTarget || event.target.closest('button');
+        if (btn) {
+            const originalHTML = btn.innerHTML;
+            btn.innerHTML = `
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" class="copy-success-bounce">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+            `;
+            btn.style.pointerEvents = 'none';
+            setTimeout(() => {
+                btn.innerHTML = originalHTML;
+                btn.style.pointerEvents = '';
+            }, 1500);
+        }
     }).catch(err => {
         console.error('Failed to copy text: ', err);
     });
@@ -2318,7 +2340,7 @@ function renderUserClonedProjects() {
                     <div style="display:flex; align-items:center; gap:6px;">
                         <a href="${p.url || '#'}" target="_blank" style="color:#2563eb; text-decoration:none; max-width:220px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${p.url || ''}">${p.url || '-'}</a>
                         ${p.url ? `
-                            <button onclick="copyToClipboard('${(p.url || '').replace(/'/g, "\\'")}', 'URL')" style="background:none; border:none; color:#94a3b8; cursor:pointer; padding:2px; display:inline-flex; align-items:center; justify-content:center;" title="Copy URL">
+                            <button onclick="copyToClipboard(event, '${(p.url || '').replace(/'/g, "\\'")}', 'URL')" style="background:none; border:none; color:#94a3b8; cursor:pointer; padding:2px; display:inline-flex; align-items:center; justify-content:center;" title="Copy URL">
                                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
                             </button>
                         ` : ''}
@@ -2328,7 +2350,7 @@ function renderUserClonedProjects() {
                     <div style="display:flex; align-items:center; gap:6px;">
                         <span>${p.userid || '-'}</span>
                         ${p.userid ? `
-                            <button onclick="copyToClipboard('${(p.userid || '').replace(/'/g, "\\'")}', 'User ID')" style="background:none; border:none; color:#94a3b8; cursor:pointer; padding:2px; display:inline-flex; align-items:center; justify-content:center;" title="Copy User ID">
+                            <button onclick="copyToClipboard(event, '${(p.userid || '').replace(/'/g, "\\'")}', 'User ID')" style="background:none; border:none; color:#94a3b8; cursor:pointer; padding:2px; display:inline-flex; align-items:center; justify-content:center;" title="Copy User ID">
                                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
                             </button>
                         ` : ''}
@@ -2342,7 +2364,7 @@ function renderUserClonedProjects() {
                             <svg id="cloned-pass-eye-${p.id}" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
                         </button>
                         ${p.password ? `
-                            <button onclick="copyToClipboard('${(p.password || '').replace(/'/g, "\\'")}', 'Password')" style="background:none; border:none; color:#94a3b8; cursor:pointer; padding:2px; display:inline-flex; align-items:center; justify-content:center;" title="Copy Password">
+                            <button onclick="copyToClipboard(event, '${(p.password || '').replace(/'/g, "\\'")}', 'Password')" style="background:none; border:none; color:#94a3b8; cursor:pointer; padding:2px; display:inline-flex; align-items:center; justify-content:center;" title="Copy Password">
                                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
                             </button>
                         ` : ''}
