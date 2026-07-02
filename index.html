@@ -10,73 +10,84 @@
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
 <style>
     :root {
-        --primary: #0d6efd;
-        --primary-hover: #0b5ed7;
-        --dark: #0d2f5f;
-        --light-bg: #f5f2eb;
-        --text-main: #333;
-        --border: rgba(13, 47, 95, 0.08);
+        --primary:       #3b82f6;
+        --primary-hover: #2563eb;
+        --dark:          #1e293b;
+        --page-bg:       #f0f4f8;
+        --card-bg:       #ffffff;
+        --text-main:     #334155;
+        --text-muted:    #64748b;
+        --border:        #e2e8f0;
+        --shadow-sm:     0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+        --shadow-md:     0 4px 20px rgba(0,0,0,0.08);
+        --shadow-lg:     0 12px 40px rgba(0,0,0,0.10);
     }
+
+    * { box-sizing: border-box; }
 
     body {
         margin: 0;
-        padding: 0;
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        background-color: #f5f2eb; /* Warm premium beige */
-        background-image: 
-            linear-gradient(rgba(13, 47, 95, 0.03) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(13, 47, 95, 0.03) 1px, transparent 1px);
-        background-size: 40px 40px;
-        animation: moveGrid 16s linear infinite;
-        height: 100vh;
+        padding: 16px;
+        font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        background-color: var(--page-bg);
+        background-image:
+            linear-gradient(135deg, rgba(2, 6, 23, 0.72), rgba(15, 23, 42, 0.28)),
+            url("BG Image.png");
+        background-position: center;
+        background-repeat: no-repeat;
+        background-size: cover;
+        min-height: 100vh;
         display: flex;
+        flex-direction: column;
         justify-content: center;
         align-items: center;
         color: var(--text-main);
     }
 
-    @keyframes moveGrid {
-        from { background-position: 0 0; }
-        to { background-position: 40px 40px; }
-    }
-
+    /* ── Login Card ── */
     .login-box {
-        background: #ffffff;
+        background: rgba(255, 255, 255, 0.94);
+        backdrop-filter: blur(8px);
         border-radius: 16px;
-        box-shadow: 0 15px 35px rgba(13, 47, 95, 0.08), 0 5px 15px rgba(0, 0, 0, 0.02);
-        padding: 40px 35px;
+        box-shadow: var(--shadow-lg);
+        padding: 36px 32px 28px;
         width: 100%;
         max-width: 400px;
-        box-sizing: border-box;
         border: 1px solid var(--border);
-        border-top: 5px solid var(--dark);
-        animation: fadeIn 0.6s ease-out;
+        border-top: 4px solid var(--dark);
+        animation: fadeUp 0.45s cubic-bezier(0.16, 1, 0.3, 1);
     }
 
-    @keyframes fadeIn {
-        from { opacity: 0; transform: translateY(20px); }
-        to { opacity: 1; transform: translateY(0); }
+    @keyframes fadeUp {
+        from { opacity: 0; transform: translateY(18px); }
+        to   { opacity: 1; transform: translateY(0); }
     }
 
+    /* ── Brand Header ── */
     .login-header {
         text-align: center;
-        margin-bottom: 30px;
+        margin-bottom: 28px;
         display: flex;
         flex-direction: column;
         align-items: center;
+        gap: 6px;
     }
 
     .brand-container {
         display: flex;
         align-items: center;
         gap: 10px;
-        margin-bottom: 5px;
     }
 
-    .volga-text {
-        color: #0B3A5E;
+    .brand-text {
+        font-weight: 800;
+        font-size: 1.6rem;
+        letter-spacing: 0.3px;
+        margin: 0;
+        line-height: 1;
     }
 
+    .volga-text   { color: #0B3A5E; }
     .infosys-text {
         background: linear-gradient(90deg, #F05A28 0%, #F39C12 100%);
         -webkit-background-clip: text;
@@ -84,116 +95,128 @@
         display: inline-block;
     }
 
-    .login-header p {
-        margin: 0;
-        color: #777;
-        font-size: 0.8rem;
+    .login-subtitle {
+        font-size: 0.78rem;
         font-weight: 700;
+        color: var(--text-muted);
         letter-spacing: 1px;
         text-transform: uppercase;
+        margin: 0;
     }
 
-    /* Tabs */
+    /* ── Tabs ── */
     .tabs {
         display: flex;
-        margin-bottom: 25px;
-        background: var(--light-bg);
+        margin-bottom: 24px;
+        background: var(--page-bg);
         border-radius: 10px;
         padding: 4px;
-        border: 1px solid rgba(0,0,0,0.04);
+        border: 1px solid var(--border);
     }
 
     .tab {
         flex: 1;
         text-align: center;
-        padding: 12px;
+        padding: 10px;
         cursor: pointer;
-        border-radius: 8px;
-        font-weight: bold;
-        color: #555;
-        font-size: 0.9rem;
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        border-radius: 7px;
+        font-weight: 700;
+        color: var(--text-muted);
+        font-size: 0.88rem;
+        transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
         user-select: none;
     }
 
     .tab.active {
         background: var(--dark);
         color: #ffffff;
-        box-shadow: 0 4px 12px rgba(13, 47, 95, 0.15);
+        box-shadow: var(--shadow-sm);
     }
 
-    /* Inputs */
+    /* ── Input Groups ── */
     .input-group {
-        margin-bottom: 22px;
+        margin-bottom: 18px;
         text-align: left;
     }
 
     .input-group label {
         display: block;
-        font-size: 0.85rem;
-        color: #444;
-        margin-bottom: 8px;
-        font-weight: 600;
+        font-size: 0.72rem;
+        color: var(--text-muted);
+        margin-bottom: 6px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
     }
 
     .input-group input {
         width: 100%;
-        padding: 12px 14px;
-        background: #ffffff;
-        border: 1.5px solid #dcdfe6;
+        padding: 10px 14px;
+        background: var(--page-bg);
+        border: 1.5px solid var(--border);
         border-radius: 8px;
         color: var(--text-main);
-        font-size: 0.95rem;
+        font-size: 0.92rem;
         outline: none;
-        box-sizing: border-box;
         font-family: inherit;
-        transition: all 0.2s ease;
+        transition: all 0.2s;
     }
 
     .input-group input:focus {
         border-color: var(--primary);
-        box-shadow: 0 0 0 4px rgba(13, 110, 253, 0.12);
+        background: #fff;
+        box-shadow: 0 0 0 3px rgba(59,130,246,0.15);
     }
 
-    /* Button */
+    /* ── Login Button (neumorphic, matches dashboard) ── */
     .btn-login {
         width: 100%;
-        padding: 14px;
-        background: linear-gradient(135deg, var(--primary) 0%, #0d5dd6 100%);
+        height: 44px;
+        background: var(--primary);
         border: none;
         border-radius: 8px;
         color: white;
-        font-size: 1rem;
-        font-weight: bold;
+        font-size: 0.95rem;
+        font-weight: 700;
         cursor: pointer;
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        box-shadow: 0 4px 12px rgba(13, 110, 253, 0.15);
+        font-family: inherit;
+        box-shadow: 0 4px 0 color-mix(in srgb, var(--primary) 75%, #000);
+        position: relative;
+        top: 0;
+        transition: all 0.1s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
     }
 
     .btn-login:hover {
-        background: linear-gradient(135deg, var(--primary-hover) 0%, #0a52be 100%);
-        transform: translateY(-1px);
-        box-shadow: 0 6px 18px rgba(13, 110, 253, 0.25);
+        background: var(--primary-hover);
+        box-shadow: 0 4px 0 color-mix(in srgb, var(--primary-hover) 75%, #000);
     }
 
     .btn-login:active {
-        transform: translateY(0);
+        top: 4px;
+        box-shadow: 0 0px 0 transparent;
     }
 
+    /* ── Error Message ── */
     .error-msg {
-        color: #dc3545;
-        font-size: 0.85rem;
+        font-size: 0.82rem;
         text-align: center;
-        margin-top: -12px;
-        margin-bottom: 18px;
+        margin-top: -8px;
+        margin-bottom: 16px;
         display: none;
         font-weight: 600;
-        background: rgba(220, 53, 69, 0.05);
-        border: 1px solid rgba(220, 53, 69, 0.1);
-        padding: 8px;
-        border-radius: 6px;
+        color: #991b1b;
+        background: #fef2f2;
+        border: 1px solid #fecaca;
+        border-left: 4px solid #ef4444;
+        padding: 10px 12px;
+        border-radius: 8px;
     }
 
+    /* ── Password Toggle ── */
     .password-toggle-btn {
         position: absolute;
         right: 12px;
@@ -203,58 +226,39 @@
         border: none;
         padding: 0;
         cursor: pointer;
-        color: #777;
+        color: var(--text-muted);
         display: flex;
         align-items: center;
         justify-content: center;
-        width: auto;
-        height: auto;
         outline: none;
         transition: color 0.2s;
     }
+    .password-toggle-btn:hover { color: var(--primary); }
 
-    .password-toggle-btn:hover {
-        color: var(--primary);
+    /* ── Footer ── */
+    .login-footer {
+        margin-top: 22px;
+        text-align: center;
+        font-size: 0.78rem;
+        color: #94a3b8;
+        border-top: 1px solid var(--border);
+        padding-top: 16px;
+    }
+
+    /* ── Page footer below card ── */
+    .page-footer {
+        margin-top: 20px;
+        font-size: 0.75rem;
+        color: #94a3b8;
+        text-align: center;
     }
 
     @media (max-width: 480px) {
-        body {
-            padding: 12px;
-        }
-        .login-box {
-            padding: 28px 22px;
-            border-radius: 12px;
-        }
-        .brand-container h1 {
-            font-size: 1.5rem;
-        }
-        .login-header p {
-            font-size: 0.75rem;
-        }
-        .tabs {
-            margin-bottom: 20px;
-        }
-        .tab {
-            padding: 10px 5px;
-            font-size: 0.85rem;
-        }
-        .input-group {
-            margin-bottom: 16px;
-        }
-        .input-group input {
-            padding: 10px 12px;
-            font-size: 0.9rem;
-        }
-        .error-message {
-            margin-top: -8px;
-            margin-bottom: 12px;
-        }
-        .btn-login {
-            padding: 12px;
-            font-size: 0.95rem;
-        }
+        .login-box { padding: 28px 20px 22px; }
+        .brand-text { font-size: 1.4rem; }
+        .tab { padding: 9px 5px; font-size: 0.82rem; }
+        .input-group { margin-bottom: 14px; }
     }
-
 </style>
 </head>
 <body>
@@ -262,12 +266,12 @@
 <div class="login-box">
     <div class="login-header">
         <div class="brand-container">
-            <img src="favicon.png" alt="Volga Infosys Logo" style="width: 32px; height: 32px; object-fit: contain;">
-            <h1 style="margin: 0; font-size: 1.8rem; font-weight: 800; letter-spacing: 0.5px;"><span class="volga-text">VOLGA</span><span class="infosys-text">INFOSYS</span></h1>
+            <img src="favicon.png" alt="Volga Infosys Logo" style="width: 30px; height: 30px; object-fit: contain;">
+            <h1 class="brand-text"><span class="volga-text">VOLGA</span><span class="infosys-text">INFOSYS</span></h1>
         </div>
-        <p style="margin: 0; color: #8ba3b8; font-size: 1rem; font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase; margin-top: 5px;">Engine VR Project Tracker Portal</p>
+        <p class="login-subtitle">Project Tracker Portal</p>
     </div>
-    
+
     <div class="tabs">
         <div class="tab active" onclick="switchTab('user')" id="tab-user">User Login</div>
         <div class="tab" onclick="switchTab('admin')" id="tab-admin">Admin Login</div>
@@ -285,7 +289,7 @@
         <div style="position: relative;">
             <input type="password" id="pass" placeholder="Enter Admin Password" style="padding-right: 40px;">
             <button type="button" class="password-toggle-btn" onclick="togglePasswordVisibility()" title="Toggle Password Visibility">
-                <svg id="eye-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <svg id="eye-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
                     <circle cx="12" cy="12" r="3"></circle>
                 </svg>
@@ -293,11 +297,21 @@
         </div>
     </div>
 
-    <button class="btn-login" onclick="login()">Enter Dashboard</button>
-    <footer style="margin-top: 25px; text-align: center; font-size: 0.8rem; color: #888; border-top: 1px solid rgba(13, 47, 95, 0.08); padding-top: 15px;">
+    <button class="btn-login" onclick="login()">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path>
+            <polyline points="10 17 15 12 10 7"></polyline>
+            <line x1="15" y1="12" x2="3" y2="12"></line>
+        </svg>
+        Enter Dashboard
+    </button>
+
+    <div class="login-footer">
         &copy; 2026 Volga Infosys Private Limited. All rights reserved.
-    </footer>
+    </div>
 </div>
+
+<p class="page-footer" style="color: #ffffff;">Secure Portal &bull; Engine VR Project Management</p>
 
 <script>
     // 1. Session check (auto-bypass login if already logged in)
