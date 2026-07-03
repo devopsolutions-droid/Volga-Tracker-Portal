@@ -1,0 +1,38 @@
+{
+  "cleanUrls": true,
+  "redirects": [
+    { "source": "/Engine_VR_Project_Tracker_Webpage.html", "destination": "/engine-vr", "permanent": true },
+    { "source": "/GutFeeling_Project_Tracker_Webpage.html", "destination": "/gut-feeling", "permanent": true },
+    { "source": "/Chaff_Extension_Project_Tracker_Webpage.html", "destination": "/chaff-extension", "permanent": true },
+    {
+      "source": "/project_tracker.html",
+      "has": [
+        {
+          "type": "query",
+          "key": "id",
+          "value": "(?<id>[^/&]+)"
+        }
+      ],
+      "destination": "/tracker/:id",
+      "permanent": true
+    },
+    {
+      "source": "/project_tracker",
+      "has": [
+        {
+          "type": "query",
+          "key": "id",
+          "value": "(?<id>[^/&]+)"
+        }
+      ],
+      "destination": "/tracker/:id",
+      "permanent": true
+    }
+  ],
+  "rewrites": [
+    { "source": "/tracker/:id", "destination": "/project_tracker.html?id=:id" },
+    { "source": "/engine-vr", "destination": "/Engine_VR_Project_Tracker_Webpage.html" },
+    { "source": "/gut-feeling", "destination": "/GutFeeling_Project_Tracker_Webpage.html" },
+    { "source": "/chaff-extension", "destination": "/Chaff_Extension_Project_Tracker_Webpage.html" }
+  ]
+}
