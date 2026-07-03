@@ -696,7 +696,15 @@ if (sessionStorage.getItem('loggedIn') !== 'true') {
 // ─── Read Project ID from URL ────────────────────────────────────────────────
 const urlParams = new URLSearchParams(window.location.search);
 let projectId = urlParams.get('id');
-if (!projectId) {
+const isVercel = window.location.hostname.includes('vercel.app');
+
+if (projectId) {
+    // If accessed via query param on Vercel, rewrite to clean URL client-side
+    if (isVercel && window.location.pathname.endsWith('project_tracker.html')) {
+        window.history.replaceState({}, '', `/tracker/${projectId}`);
+    }
+} else {
+    // Fallback: parse from path name segment
     const pathParts = window.location.pathname.split('/');
     const lastPart = pathParts[pathParts.length - 1];
     if (lastPart && pathParts.includes('tracker')) {

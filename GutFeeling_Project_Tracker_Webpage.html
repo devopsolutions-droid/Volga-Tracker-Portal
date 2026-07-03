@@ -991,6 +991,10 @@ if (sessionStorage.getItem('loggedIn') !== 'true') {
     window.location.href = 'index.html';
 }
 
+if (window.location.hostname.includes('vercel.app') && window.location.pathname.endsWith('GutFeeling_Project_Tracker_Webpage.html')) {
+    window.history.replaceState({}, '', '/gut-feeling');
+}
+
 const userRole = sessionStorage.getItem('role') || 'user';
 const userName = sessionStorage.getItem('username') || 'Unknown';
 
