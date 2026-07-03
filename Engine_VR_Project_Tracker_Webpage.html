@@ -633,6 +633,9 @@ details[open] .accordion-chevron {
     z-index: 2000;
     animation: modalFadeIn 0.2s ease-out;
 }
+#custom-confirm-modal {
+    z-index: 3000;
+}
 
 .modal-content {
     background: #ffffff;
@@ -1018,6 +1021,78 @@ details[open] .accordion-chevron {
 .copy-success-bounce {
     animation: copyBounce 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
 }
+
+/* Undo Toast Style */
+#undo-toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(100px);
+    background: #1e293b;
+    color: #ffffff;
+    padding: 12px 24px;
+    border-radius: 10px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    z-index: 9999;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.3s;
+    opacity: 0;
+}
+#undo-toast.show {
+    transform: translateX(-50%) translateY(0);
+    opacity: 1;
+}
+#undo-toast .undo-btn {
+    background: none;
+    border: none;
+    color: var(--primary);
+    font-weight: 700;
+    cursor: pointer;
+    padding: 0;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    transition: color 0.2s;
+    outline: none;
+}
+#undo-toast .undo-btn:hover {
+    color: var(--primary-hover);
+}
+
+/* Recycle Bin Styling */
+.trash-list {
+    max-height: 350px;
+    overflow-y: auto;
+    margin-top: 15px;
+}
+.trash-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+    text-align: left;
+}
+.trash-table th, .trash-table td {
+    padding: 10px 12px;
+    border-bottom: 1px solid #e2e8f0;
+}
+.trash-table th {
+    background: #f8fafc;
+    color: #475569;
+    font-weight: 600;
+}
+.trash-table tr:hover {
+    background: #f8fafc;
+}
+.trash-empty-state {
+    padding: 32px 16px;
+    text-align: center;
+    color: #64748b;
+    font-size: 0.9rem;
+}
 </style>
 </head>
 <body>
@@ -1288,8 +1363,9 @@ details[open] .accordion-chevron {
             <!-- Dynamically populated -->
         </div>
 
-        <div class="modal-actions" style="margin-top: 20px;">
-            <button type="button" onclick="closeConflictModal()" class="modal-btn btn-cancel" style="border-color: #d1d5db; width: auto;">Close</button>
+        <div class="modal-actions">
+            <button type="button" id="confirm-cancel-btn" class="modal-btn btn-cancel">Cancel</button>
+            <button type="button" id="confirm-ok-btn" class="modal-btn btn-danger">Confirm</button>
         </div>
     </div>
 </div>
@@ -1461,6 +1537,7 @@ const dbHelper = {
     },
 
     async deleteRecord(id) {
+        // Obsoleted by moveToTrash, kept for compatibility
         if (db) {
             try {
                 await db.collection('engines').doc(id).delete();
@@ -1472,6 +1549,89 @@ const dbHelper = {
         let records = await this.getRecords();
         records = records.filter(r => r.id !== id);
         localStorage.setItem('engineTrackerData', JSON.stringify(records));
+    },
+
+    async getTrashRecords() {
+        if (db) {
+            try {
+                const snapshot = await db.collection('trash_engines').orderBy('deletedAt', 'desc').get();
+                return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            } catch(e) { console.error("Firestore read trash failed, falling back:", e); }
+        }
+        const stored = localStorage.getItem('trash_engineTrackerData');
+        return stored ? JSON.parse(stored) : [];
+    },
+
+    async moveToTrash(id, record) {
+        const trashRecord = { ...record, deletedAt: new Date().toISOString() };
+        if (db) {
+            try {
+                await db.collection('trash_engines').doc(id).set(trashRecord);
+                await db.collection('engines').doc(id).delete();
+                return;
+            } catch(e) { console.error("Firestore move to trash failed, falling back:", e); }
+        }
+        let records = await this.getRecords();
+        records = records.filter(r => r.id !== id);
+        localStorage.setItem('engineTrackerData', JSON.stringify(records));
+
+        let trashRecords = await this.getTrashRecords();
+        trashRecords.unshift(trashRecord);
+        localStorage.setItem('trash_engineTrackerData', JSON.stringify(trashRecords));
+    },
+
+    async restoreFromTrash(id) {
+        if (db) {
+            try {
+                const doc = await db.collection('trash_engines').doc(id).get();
+                if (doc.exists) {
+                    const data = doc.data();
+                    const restoredData = { ...data };
+                    delete restoredData.deletedAt;
+                    await db.collection('engines').doc(id).set(restoredData);
+                    await db.collection('trash_engines').doc(id).delete();
+                }
+                return;
+            } catch(e) { console.error("Firestore restore failed, falling back:", e); }
+        }
+        let trashRecords = await this.getTrashRecords();
+        const record = trashRecords.find(r => r.id === id);
+        if (record) {
+            const restored = { ...record };
+            delete restored.deletedAt;
+
+            trashRecords = trashRecords.filter(r => r.id !== id);
+            localStorage.setItem('trash_engineTrackerData', JSON.stringify(trashRecords));
+
+            const records = await this.getRecords();
+            records.push(restored);
+            localStorage.setItem('engineTrackerData', JSON.stringify(records));
+        }
+    },
+
+    async deleteTrashRecord(id) {
+        if (db) {
+            try {
+                await db.collection('trash_engines').doc(id).delete();
+                return;
+            } catch(e) { console.error("Firestore purge failed, falling back:", e); }
+        }
+        let trashRecords = await this.getTrashRecords();
+        trashRecords = trashRecords.filter(r => r.id !== id);
+        localStorage.setItem('trash_engineTrackerData', JSON.stringify(trashRecords));
+    },
+
+    async emptyTrash() {
+        if (db) {
+            try {
+                const snapshot = await db.collection('trash_engines').get();
+                const batch = db.batch();
+                snapshot.docs.forEach(doc => batch.delete(doc.ref));
+                await batch.commit();
+                return;
+            } catch(e) { console.error("Firestore empty trash failed, falling back:", e); }
+        }
+        localStorage.setItem('trash_engineTrackerData', JSON.stringify([]));
     }
 };
 
@@ -1533,6 +1693,9 @@ document.addEventListener("DOMContentLoaded", async function() {
         const addForm = document.getElementById('add-form-card');
         if (addForm) addForm.style.display = 'none';
     }
+
+    const btnRecycle = document.getElementById('btn-recycle-bin');
+    if (btnRecycle) btnRecycle.style.display = (userRole === 'admin') ? 'inline-flex' : 'none';
 
     await initData();
 
@@ -2227,12 +2390,18 @@ async function purgeRecordsKeepFirst() {
     );
     if (!confirmed) return;
 
-    // Delete from Firestore in a batch
+    const deletedAtStr = new Date().toISOString();
+
+    // Delete from Firestore in a batch and move to trash
     if (db) {
         try {
             const batch = db.batch();
             toDelete.forEach(r => {
-                if (r.id) batch.delete(db.collection('engines').doc(r.id));
+                if (r.id) {
+                    const trashRecord = { ...r, deletedAt: deletedAtStr };
+                    batch.set(db.collection('trash_engines').doc(r.id), trashRecord);
+                    batch.delete(db.collection('engines').doc(r.id));
+                }
             });
             await batch.commit();
         } catch(e) {
@@ -2240,8 +2409,18 @@ async function purgeRecordsKeepFirst() {
         }
     }
 
-    // Update localStorage
+    // Update localStorage active
     localStorage.setItem('engineTrackerData', JSON.stringify(toKeep));
+
+    // Update localStorage trash
+    let trashRecords = [];
+    try {
+        const stored = localStorage.getItem('trash_engineTrackerData');
+        trashRecords = stored ? JSON.parse(stored) : [];
+    } catch(e) {}
+    const newTrash = toDelete.map(r => ({ ...r, deletedAt: deletedAtStr }));
+    trashRecords = [...newTrash, ...trashRecords];
+    localStorage.setItem('trash_engineTrackerData', JSON.stringify(trashRecords));
 
     // Reload in-memory data and re-render
     data = await dbHelper.getRecords();
@@ -2251,6 +2430,10 @@ async function purgeRecordsKeepFirst() {
 }
 
 // Delete Record
+let lastDeletedRecordId = null;
+let toastTimeout = null;
+let trashDisplayLimit = 10;
+
 async function deleteRecord(id) {
     if (userRole !== 'admin') {
         await showCustomAlert("Authorization Error", "Only admins can delete records.", true);
@@ -2266,11 +2449,14 @@ async function deleteRecord(id) {
         message
     );
     if (confirmed) {
-        await dbHelper.deleteRecord(id);
+        await dbHelper.moveToTrash(id, record);
         data = await dbHelper.getRecords();
         render();
+        showCustomAlert("Deleted", "Assignment moved to the Recycle Bin.", false);
     }
 }
+
+
 
 
 

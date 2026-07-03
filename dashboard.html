@@ -506,6 +506,102 @@ body {
     display: flex; justify-content: center; align-items: center;
     z-index: 2000; animation: modalFadeIn 0.2s ease-out;
 }
+#custom-confirm-modal { z-index: 3000; }
+
+/* Undo Toast Style */
+#undo-toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(100px);
+    background: #1e293b;
+    color: #ffffff;
+    padding: 12px 24px;
+    border-radius: 10px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    z-index: 9999;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.3s;
+    opacity: 0;
+}
+#undo-toast.show {
+    transform: translateX(-50%) translateY(0);
+    opacity: 1;
+}
+#undo-toast .undo-btn {
+    background: none;
+    border: none;
+    color: var(--primary);
+    font-weight: 700;
+    cursor: pointer;
+    padding: 0;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    transition: color 0.2s;
+    outline: none;
+}
+#undo-toast .undo-btn:hover {
+    color: var(--primary-hover);
+}
+
+/* Recycle Bin Styling */
+.trash-list {
+    max-height: 350px;
+    overflow-y: auto;
+    margin-top: 15px;
+}
+.trash-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+    text-align: left;
+}
+.trash-table th, .trash-table td {
+    padding: 10px 12px;
+    border-bottom: 1px solid #e2e8f0;
+}
+.trash-table th {
+    background: #f8fafc;
+    color: #475569;
+    font-weight: 600;
+}
+.trash-table tr:hover {
+    background: #f8fafc;
+}
+.trash-empty-state {
+    padding: 32px 16px;
+    text-align: center;
+    color: #64748b;
+    font-size: 0.9rem;
+}
+
+/* Tabs inside Recycle Bin */
+.trash-tabs {
+    display: flex;
+    border-bottom: 1px solid #e2e8f0;
+    margin-bottom: 15px;
+    gap: 15px;
+}
+.trash-tab-btn {
+    background: none;
+    border: none;
+    padding: 8px 12px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #64748b;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s;
+}
+.trash-tab-btn.active {
+    color: var(--primary);
+    border-bottom-color: var(--primary);
+}
 .modal-content {
     background: #fff; border-radius: 16px;
     box-shadow: 0 25px 60px rgba(0,0,0,0.18); padding: 28px;
@@ -1519,6 +1615,17 @@ footer {
                 </svg>
             </button>
 
+            <!-- Recycle Bin button inside drawer -->
+            <button class="drawer-announce-toggle" id="btn-recycle-bin-drawer" onclick="toggleAdminDrawer(); openRecycleBinModal();" style="margin-top: 4px;">
+                <span class="drawer-announce-icon">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="3 6 5 6 21 6"></polyline>
+                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                    </svg>
+                </span>
+                Recycle Bin
+            </button>
+
         </div>
 
         <!-- ── SECTION 2: DOWNLOAD SUMMARY (admin only, standalone) ── -->
@@ -2192,6 +2299,59 @@ footer {
     </div>
 </div>
 
+<!-- Recycle Bin Modal -->
+<div id="recycle-bin-modal" class="modal-overlay" style="display: none;">
+    <div class="modal-content" style="width: 750px; max-width: 95%;">
+        <div style="display: flex; gap: 16px; align-items: flex-start; border-bottom: 1px solid var(--border); padding-bottom: 15px; margin-bottom: 15px;">
+            <div style="background: rgba(108, 117, 125, 0.1); color: #6c757d; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+            </div>
+            <div style="flex: 1; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                <div>
+                    <h3 style="margin: 0; color: var(--dark); font-size: 1.25rem; font-weight: 700;">Universal Recycle Bin</h3>
+                    <p style="margin: 3px 0 0; font-size: 0.85rem; color: #666; font-weight: 500;">Restore deleted users, projects, and assignments.</p>
+                </div>
+                <button type="button" class="modal-btn btn-danger" style="padding: 6px 12px; font-size: 0.78rem; background: #dc3545;" onclick="emptyUniversalTrashTab()">Empty Current Tab</button>
+            </div>
+        </div>
+        
+        <!-- Tabs -->
+        <div class="trash-tabs">
+            <button type="button" id="tab-trash-users" class="trash-tab-btn active" onclick="switchTrashTab('users')">Users</button>
+            <button type="button" id="tab-trash-projects" class="trash-tab-btn" onclick="switchTrashTab('projects')">Projects</button>
+            <button type="button" id="tab-trash-assignments" class="trash-tab-btn" onclick="switchTrashTab('assignments')">Assignments</button>
+        </div>
+
+        <div class="trash-list">
+            <!-- Empty state -->
+            <div id="trash-empty-state" class="trash-empty-state">
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom: 10px; color: #94a3b8;"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                <div>Recycle Bin is empty</div>
+            </div>
+
+            <!-- Table -->
+            <table id="trash-table" class="trash-table" style="display: none;">
+                <thead id="trash-table-head"></thead>
+                <tbody id="trash-list-body"></tbody>
+            </table>
+            
+            <div id="trash-load-more-container" style="text-align: center; margin-top: 12px; display: none;">
+                <button type="button" class="modal-btn" style="padding: 6px 12px; font-size: 0.78rem; background: transparent; border-color: var(--primary); color: var(--primary);" onclick="loadMoreTrash()">Show More</button>
+            </div>
+        </div>
+        
+        <div class="modal-actions" style="margin-top: 20px; border-top: 1px solid var(--border); padding-top: 15px;">
+            <button type="button" onclick="closeRecycleBinModal()" class="modal-btn btn-cancel" style="border-color: #d1d5db; width: auto;">Close</button>
+        </div>
+    </div>
+</div>
+
+<!-- Undo Toast Notification -->
+<div id="undo-toast">
+    <span id="undo-toast-message">Item moved to Recycle Bin.</span>
+    <button id="undo-toast-btn" class="undo-btn" onclick="triggerUndo()">Undo</button>
+</div>
+
 <script>
 // Authentication check
 if (sessionStorage.getItem('loggedIn') !== 'true') {
@@ -2264,15 +2424,66 @@ const dbHelper = {
     async removeUser(userId) {
         if (db) {
             try {
-                await db.collection('users').doc(userId).delete();
+                const doc = await db.collection('users').doc(userId).get();
+                if (doc.exists) {
+                    const data = doc.data();
+                    const trashUser = { ...data, deletedAt: new Date().toISOString() };
+                    await db.collection('trash_users').doc(userId).set(trashUser);
+                    await db.collection('users').doc(userId).delete();
+                }
                 return;
             } catch (e) {
                 console.error("Firestore remove user failed, falling back to LocalStorage:", e);
             }
         }
         let users = await this.getUsers();
-        users = users.filter(u => u.id !== userId);
-        localStorage.setItem('engineTrackerUsers', JSON.stringify(users));
+        const user = users.find(u => u.id === userId);
+        if (user) {
+            const trashUser = { ...user, deletedAt: new Date().toISOString() };
+            let trashUsers = [];
+            try {
+                const stored = localStorage.getItem('trash_engineTrackerUsers');
+                trashUsers = stored ? JSON.parse(stored) : [];
+            } catch(e) {}
+            trashUsers.unshift(trashUser);
+            localStorage.setItem('trash_engineTrackerUsers', JSON.stringify(trashUsers));
+            
+            users = users.filter(u => u.id !== userId);
+            localStorage.setItem('engineTrackerUsers', JSON.stringify(users));
+        }
+    },
+
+    async restoreUser(userId) {
+        if (db) {
+            try {
+                const doc = await db.collection('trash_users').doc(userId).get();
+                if (doc.exists) {
+                    const data = doc.data();
+                    const restoredUser = { ...data };
+                    delete restoredUser.deletedAt;
+                    await db.collection('users').doc(userId).set(restoredUser);
+                    await db.collection('trash_users').doc(userId).delete();
+                }
+                return;
+            } catch(e) { console.error("Firestore user restore failed:", e); }
+        }
+        let trashUsers = [];
+        try {
+            const stored = localStorage.getItem('trash_engineTrackerUsers');
+            trashUsers = stored ? JSON.parse(stored) : [];
+        } catch(e) {}
+        const user = trashUsers.find(u => u.id === userId);
+        if (user) {
+            const restored = { ...user };
+            delete restored.deletedAt;
+            
+            trashUsers = trashUsers.filter(u => u.id !== userId);
+            localStorage.setItem('trash_engineTrackerUsers', JSON.stringify(trashUsers));
+            
+            const users = await this.getUsers();
+            users.push(restored);
+            localStorage.setItem('engineTrackerUsers', JSON.stringify(users));
+        }
     },
 
     async updateUserDisplayName(userId, newDisplayName) {
@@ -3156,6 +3367,7 @@ async function removeAuthUser(userId) {
         await dbHelper.removeUser(userId);
         authUsers = await dbHelper.getUsers();
         renderAuthUsers();
+        showUndoToast("User '" + label + "' moved to Recycle Bin.", 'user', userId);
     }
 }
 
@@ -3363,42 +3575,135 @@ async function deleteProjectFromRegistry(id) {
     const project = registry.find(p => p.id === id);
     if (!project) return;
 
-    const deleteData = await showCustomConfirm(
-        'Delete Project Records?',
-        `Do you want to <strong style="color:#ef4444;">permanently delete all task records</strong> for <strong>${project.name}</strong> from Firestore and localStorage as well?`,
-        true, 'Yes, Delete All Data', false
+    const confirmed = await showCustomConfirm(
+        'Delete Project Portal',
+        'Are you sure you want to delete the project portal <strong>' + project.name + '</strong>? The portal card and all its tasks will be moved to the Recycle Bin.',
+        true, 'Delete Project', false
     );
+    if (!confirmed) return;
 
-    if (deleteData) {
-        const confirmWipe = await showCustomConfirm(
-            'Permanently Delete Everything?',
-            `All task records for <strong>${project.name}</strong> will be wiped from Firestore and cannot be recovered. The portal card will also be removed.`,
-            true, 'Yes, Delete Everything', false
-        );
-        if (!confirmWipe) return;
-    } else {
-        const removeEntryOnly = await showCustomConfirm(
-            'Remove Portal Card?',
-            `Remove <strong>${project.name}</strong> from the dashboard? Task records in Firestore will be <strong>preserved</strong> — the project can be re-added later.`,
-            false, 'Remove Card Only', false
-        );
-        if (!removeEntryOnly) return;
+    const deletedAtStr = new Date().toISOString();
+
+    // Soft-delete the project registry entry
+    const trashProject = { ...project, deletedAt: deletedAtStr };
+    if (db) {
+        try {
+            await db.collection('trash_project_registry').doc(id).set(trashProject);
+            await db.collection('project_registry').doc(id).delete();
+        } catch(e) { console.error(e); }
     }
+    
+    let trashProjects = [];
+    try {
+        const stored = localStorage.getItem('trash_project_registry');
+        trashProjects = stored ? JSON.parse(stored) : [];
+    } catch(e) {}
+    trashProjects.unshift(trashProject);
+    localStorage.setItem('trash_project_registry', JSON.stringify(trashProjects));
 
     const updated = registry.filter(p => p.id !== id);
     saveProjectRegistry(updated);
-    if (db) { db.collection('project_registry').doc(id).delete().catch(e => console.error(e)); }
 
-    if (deleteData) {
-        localStorage.removeItem(project.localStorageKey);
-        if (db) {
-            try {
-                const snapshot = await db.collection(project.firestoreCollection).get();
-                const batch = db.batch();
-                snapshot.docs.forEach(doc => batch.delete(doc.ref));
-                await batch.commit();
-            } catch(e) { console.error('Firestore records purge failed:', e); }
-        }
+    // Soft-delete the project's active task records
+    let localRecords = [];
+    try {
+        const stored = localStorage.getItem(project.localStorageKey);
+        localRecords = stored ? JSON.parse(stored) : [];
+    } catch(e) {}
+    localStorage.removeItem(project.localStorageKey);
+
+    if (localRecords.length > 0) {
+        let trashRecords = [];
+        try {
+            const stored = localStorage.getItem('trash_' + project.id + 'TrackerData');
+            trashRecords = stored ? JSON.parse(stored) : [];
+        } catch(e) {}
+        const newTrash = localRecords.map(r => ({ ...r, deletedAt: deletedAtStr }));
+        trashRecords = [...newTrash, ...trashRecords];
+        localStorage.setItem('trash_' + project.id + 'TrackerData', JSON.stringify(trashRecords));
+    }
+
+    if (db) {
+        try {
+            const snapshot = await db.collection(project.firestoreCollection).get();
+            const batch = db.batch();
+            snapshot.docs.forEach(doc => {
+                const trashDoc = { ...doc.data(), deletedAt: deletedAtStr };
+                batch.set(db.collection('trash_' + project.id + '_records').doc(doc.id), trashDoc);
+                batch.delete(doc.ref);
+            });
+            await batch.commit();
+        } catch(e) { console.error('Firestore records soft-delete failed:', e); }
+    }
+
+    renderDynamicProjects();
+    showUndoToast("Project '" + project.name + "' moved to Recycle Bin.", 'project', id);
+}
+
+async function restoreProject(id) {
+    let project = null;
+    if (db) {
+        try {
+            const doc = await db.collection('trash_project_registry').doc(id).get();
+            if (doc.exists) {
+                project = doc.data();
+                const restoredProject = { ...project };
+                delete restoredProject.deletedAt;
+                await db.collection('project_registry').doc(id).set(restoredProject);
+                await db.collection('trash_project_registry').doc(id).delete();
+            }
+        } catch(e) { console.error(e); }
+    }
+    
+    let trashProjects = [];
+    try {
+        const stored = localStorage.getItem('trash_project_registry');
+        trashProjects = stored ? JSON.parse(stored) : [];
+    } catch(e) {}
+    const localProj = trashProjects.find(p => p.id === id);
+    if (localProj) {
+        project = localProj;
+        const restored = { ...localProj };
+        delete restored.deletedAt;
+        
+        trashProjects = trashProjects.filter(p => p.id !== id);
+        localStorage.setItem('trash_project_registry', JSON.stringify(trashProjects));
+        
+        const registry = getProjectRegistry();
+        registry.push(restored);
+        saveProjectRegistry(registry);
+    }
+
+    if (!project) return;
+
+    // Restore the project's task records as well!
+    if (db) {
+        try {
+            const snapshot = await db.collection('trash_' + project.id + '_records').get();
+            const batch = db.batch();
+            snapshot.docs.forEach(doc => {
+                const restoredDoc = { ...doc.data() };
+                delete restoredDoc.deletedAt;
+                batch.set(db.collection(project.firestoreCollection).doc(doc.id), restoredDoc);
+                batch.delete(doc.ref);
+            });
+            await batch.commit();
+        } catch(e) { console.error(e); }
+    }
+
+    let trashRecords = [];
+    try {
+        const stored = localStorage.getItem('trash_' + project.id + 'TrackerData');
+        trashRecords = stored ? JSON.parse(stored) : [];
+    } catch(e) {}
+    if (trashRecords.length > 0) {
+        const restoredRecords = trashRecords.map(r => {
+            const res = { ...r };
+            delete res.deletedAt;
+            return res;
+        });
+        localStorage.setItem(project.localStorageKey, JSON.stringify(restoredRecords));
+        localStorage.removeItem('trash_' + project.id + 'TrackerData');
     }
 
     renderDynamicProjects();
@@ -4651,6 +4956,753 @@ async function downloadPortalSummary() {
     }
 
     finishLoader();
+}
+
+async function renderTrashList() {
+    const body = document.getElementById('trash-list-body');
+    const table = document.getElementById('trash-table');
+    const head = document.getElementById('trash-table-head');
+    const emptyState = document.getElementById('trash-empty-state');
+    const loadMoreContainer = document.getElementById('trash-load-more-container');
+
+    let records = [];
+
+    if (currentTrashTab === 'users') {
+        if (db) {
+            try {
+                const snapshot = await db.collection('trash_users').get();
+                records = snapshot.docs.map(doc => ({ id: doc.id, type: 'user', ...doc.data() }));
+            } catch(e) { console.error(e); }
+        } else {
+            const stored = localStorage.getItem('trash_engineTrackerUsers');
+            records = stored ? JSON.parse(stored).map(u => ({ type: 'user', ...u })) : [];
+        }
+    } else if (currentTrashTab === 'projects') {
+        if (db) {
+            try {
+                const snapshot = await db.collection('trash_project_registry').get();
+                records = snapshot.docs.map(doc => ({ id: doc.id, type: 'project', ...doc.data() }));
+            } catch(e) { console.error(e); }
+        } else {
+            const stored = localStorage.getItem('trash_project_registry');
+            records = stored ? JSON.parse(stored).map(p => ({ type: 'project', ...p })) : [];
+        }
+    } else if (currentTrashTab === 'assignments') {
+        const activeRegistry = getProjectRegistry();
+        let deletedRegistry = [];
+        if (db) {
+            try {
+                const snapshot = await db.collection('trash_project_registry').get();
+                deletedRegistry = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            } catch(e) { console.error(e); }
+        } else {
+            const stored = localStorage.getItem('trash_project_registry');
+            deletedRegistry = stored ? JSON.parse(stored) : [];
+        }
+        
+        const allProjects = [...activeRegistry, ...deletedRegistry];
+        
+        const staticProjects = [
+            { id: 'engines', name: 'Engine VR', firestoreCollection: 'trash_engines', localStorageKey: 'trash_engineTrackerData' },
+            { id: 'gutfeeling_engines', name: 'GutFeeling', firestoreCollection: 'trash_gutfeeling_engines', localStorageKey: 'trash_gutfeelingTrackerData' },
+            { id: 'chaff_engines', name: 'Chaff Extension', firestoreCollection: 'trash_chaff_engines', localStorageKey: 'trash_chaffTrackerData' }
+        ];
+
+        for (const p of staticProjects) {
+            let trashArr = [];
+            if (db) {
+                try {
+                    const snapshot = await db.collection(p.firestoreCollection).get();
+                    trashArr = snapshot.docs.map(doc => ({ id: doc.id, type: 'assignment', projectName: p.name, ...doc.data() }));
+                } catch(e) { console.error(e); }
+            } else {
+                const stored = localStorage.getItem(p.localStorageKey);
+                trashArr = stored ? JSON.parse(stored).map(r => ({ type: 'assignment', projectName: p.name, ...r })) : [];
+            }
+            records = [...records, ...trashArr];
+        }
+
+        for (const p of allProjects) {
+            let trashArr = [];
+            const colName = 'trash_' + p.id + '_records';
+            const keyName = 'trash_' + p.id + 'TrackerData';
+            if (db) {
+                try {
+                    const snapshot = await db.collection(colName).get();
+                    trashArr = snapshot.docs.map(doc => ({ id: doc.id, type: 'assignment', projectName: p.name || p.brand || '', ...doc.data() }));
+                } catch(e) { console.error(e); }
+            } else {
+                const stored = localStorage.getItem(keyName);
+                trashArr = stored ? JSON.parse(stored).map(r => ({ type: 'assignment', projectName: p.name || p.brand || '', ...r })) : [];
+            }
+            records = [...records, ...trashArr];
+        }
+    }
+
+    if (records.length === 0) {
+        table.style.display = 'none';
+        emptyState.style.display = 'block';
+        body.innerHTML = '';
+        if (loadMoreContainer) loadMoreContainer.style.display = 'none';
+        return;
+    }
+
+    emptyState.style.display = 'none';
+    table.style.display = 'table';
+
+    const sortedRecords = [...records].sort((a, b) => {
+        const da = a.deletedAt ? new Date(a.deletedAt).getTime() : 0;
+        const dbVal = b.deletedAt ? new Date(b.deletedAt).getTime() : 0;
+        return dbVal - da;
+    });
+
+    const groups = [];
+    let currentGroup = null;
+
+    sortedRecords.forEach(r => {
+        const time = r.deletedAt ? new Date(r.deletedAt).getTime() : 0;
+        if (!currentGroup) {
+            currentGroup = {
+                id: r.id,
+                time: time,
+                deletedAt: r.deletedAt,
+                items: [r]
+            };
+            groups.push(currentGroup);
+        } else {
+            if (Math.abs(currentGroup.time - time) <= 4000) {
+                currentGroup.items.push(r);
+            } else {
+                currentGroup = {
+                    id: r.id,
+                    time: time,
+                    deletedAt: r.deletedAt,
+                    items: [r]
+                };
+                groups.push(currentGroup);
+            }
+        }
+    });
+
+    const visibleGroups = groups.slice(0, trashDisplayLimit);
+
+    if (currentTrashTab === 'users') {
+        head.innerHTML = `
+            <tr>
+                <th>User ID</th>
+                <th>Display Name</th>
+                <th>Role</th>
+                <th>Deleted Date</th>
+                <th style="text-align: right; width: 90px;">Actions</th>
+            </tr>
+        `;
+    } else if (currentTrashTab === 'projects') {
+        head.innerHTML = `
+            <tr>
+                <th>Project Name</th>
+                <th>Accent Color</th>
+                <th>Type</th>
+                <th>Deleted Date</th>
+                <th style="text-align: right; width: 90px;">Actions</th>
+            </tr>
+        `;
+    } else if (currentTrashTab === 'assignments') {
+        head.innerHTML = `
+            <tr>
+                <th>Project</th>
+                <th>Item / Task</th>
+                <th>Assigned To</th>
+                <th>Deleted Date</th>
+                <th style="text-align: right; width: 90px;">Actions</th>
+            </tr>
+        `;
+    }
+
+    body.innerHTML = visibleGroups.map(g => {
+        const deletedDate = g.deletedAt ? new Date(g.deletedAt).toLocaleString() : 'Unknown';
+        if (g.items.length === 1) {
+            const r = g.items[0];
+            if (currentTrashTab === 'users') {
+                return `
+                    <tr>
+                        <td style="font-weight: 600; color: var(--dark);">${r.id || ''}</td>
+                        <td>${r.displayName || ''}</td>
+                        <td><span style="text-transform: capitalize;">${r.role || ''}</span></td>
+                        <td>${deletedDate}</td>
+                        <td style="text-align: right; white-space: nowrap;">
+                            <button type="button" class="btn-action btn-action-edit" style="color: var(--primary); border-color: rgba(59,130,246,0.15); background: rgba(59,130,246,0.05); padding: 5px; margin-right: 5px;" onclick="restoreTrashItem('${r.id}', 'user')" title="Restore">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 2v6h6M21.5 22v-6h-6"/><path d="M22 11.5A10 10 0 0 0 3.2 7.2L2.5 8M21.5 16l-.7 1.3A10 10 0 0 1 2 12.5"/></svg>
+                            </button>
+                            <button type="button" class="btn-action btn-action-delete" style="padding: 5px;" onclick="purgeTrashItem('${r.id}', 'user', '${r.displayName || r.id}')" title="Delete Permanently">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            } else if (currentTrashTab === 'projects') {
+                return `
+                    <tr>
+                        <td style="font-weight: 600; color: var(--dark);">${r.name || ''}</td>
+                        <td><span style="display:inline-block; width:12px; height:12px; border-radius:50%; background:${r.accentColor || '#6366f1'}; margin-right:6px; vertical-align:middle;"></span>${r.accentColor || ''}</td>
+                        <td>${r.isStatic ? 'Static' : 'Dynamic'}</td>
+                        <td>${deletedDate}</td>
+                        <td style="text-align: right; white-space: nowrap;">
+                            <button type="button" class="btn-action btn-action-edit" style="color: var(--primary); border-color: rgba(59,130,246,0.15); background: rgba(59,130,246,0.05); padding: 5px; margin-right: 5px;" onclick="restoreTrashItem('${r.id}', 'project')" title="Restore">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 2v6h6M21.5 22v-6h-6"/><path d="M22 11.5A10 10 0 0 0 3.2 7.2L2.5 8M21.5 16l-.7 1.3A10 10 0 0 1 2 12.5"/></svg>
+                            </button>
+                            <button type="button" class="btn-action btn-action-delete" style="padding: 5px;" onclick="purgeTrashItem('${r.id}', 'project', '${r.name}')" title="Delete Permanently">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            } else if (currentTrashTab === 'assignments') {
+                return `
+                    <tr>
+                        <td style="font-weight: 500; color: var(--text-muted);">${r.projectName || ''}</td>
+                        <td style="font-weight: 600; color: var(--dark);">${r.engine || ''}</td>
+                        <td>${r.user || ''}</td>
+                        <td>${deletedDate}</td>
+                        <td style="text-align: right; white-space: nowrap;">
+                            <button type="button" class="btn-action btn-action-edit" style="color: var(--primary); border-color: rgba(59,130,246,0.15); background: rgba(59,130,246,0.05); padding: 5px; margin-right: 5px;" onclick="restoreAssignmentFromDashboard('${r.id}', '${r.projectName}')" title="Restore">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 2v6h6M21.5 22v-6h-6"/><path d="M22 11.5A10 10 0 0 0 3.2 7.2L2.5 8M21.5 16l-.7 1.3A10 10 0 0 1 2 12.5"/></svg>
+                            </button>
+                            <button type="button" class="btn-action btn-action-delete" style="padding: 5px;" onclick="purgeAssignmentFromDashboard('${r.id}', '${r.projectName}', '${r.engine || ''}')" title="Delete Permanently">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2 2v2"></path></svg>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            }
+        } else {
+            const ids = g.items.map(i => i.id).join(',');
+            const firstItem = g.items[0];
+            const projNameString = currentTrashTab === 'assignments' ? ` [${firstItem.projectName}]` : '';
+            return `
+                <tr style="background: #f8fafc; border-left: 4px solid var(--primary);">
+                    <td colspan="${currentTrashTab === 'assignments' ? 3 : 4}" style="font-weight: 700; color: var(--dark); padding-left: 12px;">
+                        <div style="display:flex; align-items:center; gap:8px; cursor:pointer;" onclick="toggleTrashGroupDetail('${g.id}')">
+                            <span id="group-icon-${g.id}" style="font-size:0.75rem; transition:transform 0.15s; display:inline-block;">▶</span>
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="color:var(--primary);"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+                            <span>Bulk Deletion Session (${g.items.length} items)${projNameString}</span>
+                            <span style="font-weight:normal; font-size:0.78rem; color:#64748b; margin-left:8px;">Deleted ${deletedDate}</span>
+                        </div>
+                    </td>
+                    <td style="text-align: right; white-space: nowrap;">
+                        <button type="button" class="btn-action btn-action-edit" style="color: var(--primary); border-color: rgba(59,130,246,0.15); background: rgba(59,130,246,0.05); padding: 5px; margin-right: 5px;" onclick="restoreTrashGroup('${ids}', '${firstItem.projectName || ''}')" title="Restore Batch">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 2v6h6M21.5 22v-6h-6"/><path d="M22 11.5A10 10 0 0 0 3.2 7.2L2.5 8M21.5 16l-.7 1.3A10 10 0 0 1 2 12.5"/></svg>
+                        </button>
+                        <button type="button" class="btn-action btn-action-delete" style="padding: 5px;" onclick="purgeTrashGroup('${ids}', '${firstItem.projectName || ''}', ${g.items.length})" title="Delete Batch Permanently">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2 2v2"></path></svg>
+                        </button>
+                    </td>
+                </tr>
+                <tr id="group-detail-${g.id}" style="display:none; background:#fcfdfe;">
+                    <td colspan="5" style="padding:0 0 12px 32px;">
+                        <div style="max-height:150px; overflow-y:auto; border:1px solid #e2e8f0; border-radius:8px; margin: 4px 12px 8px 0;">
+                            <table style="width:100%; border-collapse:collapse; font-size:0.78rem;">
+                                <thead>
+                                    <tr style="background:#f1f5f9; position:sticky; top:0;">
+                                        <th style="padding:6px 10px; text-align:left; border-bottom:1px solid #cbd5e1;">Name / ID</th>
+                                        <th style="padding:6px 10px; text-align:left; border-bottom:1px solid #cbd5e1;">Detail</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${g.items.map(i => {
+                                        const nameStr = currentTrashTab === 'users' ? i.id : (currentTrashTab === 'projects' ? i.name : i.engine);
+                                        const detailStr = currentTrashTab === 'users' ? i.displayName : (currentTrashTab === 'projects' ? i.accentColor : i.user);
+                                        return `
+                                            <tr style="border-bottom:1px solid #f1f5f9;">
+                                                <td style="padding:5px 10px; font-weight:600; color:#334155;">${nameStr || ''}</td>
+                                                <td style="padding:5px 10px; color:#475569;">${detailStr || ''}</td>
+                                            </tr>
+                                        `;
+                                    }).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    </td>
+                </tr>
+            `;
+        }
+    }).join('');
+
+    if (loadMoreContainer) {
+        loadMoreContainer.style.display = (groups.length > trashDisplayLimit) ? 'block' : 'none';
+    }
+}
+
+// ─── Universal Recycle Bin & Toast Logic ─────────────────────────────
+let trashDisplayLimit = 10;
+let currentTrashTab = 'users';
+let toastTimeout = null;
+let lastDeletedType = null;
+let lastDeletedId = null;
+
+function showUndoToast(msg, type = null, id = null) {
+    const toast = document.getElementById('undo-toast');
+    if (!toast) return;
+    document.getElementById('undo-toast-message').innerText = msg;
+    lastDeletedType = type;
+    lastDeletedId = id;
+    toast.classList.add('show');
+    
+    if (toastTimeout) clearTimeout(toastTimeout);
+    toastTimeout = setTimeout(() => {
+        hideUndoToast();
+    }, 6000);
+}
+
+function hideUndoToast() {
+    const toast = document.getElementById('undo-toast');
+    if (toast) toast.classList.remove('show');
+}
+
+async function triggerUndo() {
+    if (lastDeletedId && lastDeletedType) {
+        hideUndoToast();
+        if (lastDeletedType === 'user') {
+            await dbHelper.restoreUser(lastDeletedId);
+            authUsers = await dbHelper.getUsers();
+            renderAuthUsers();
+        } else if (lastDeletedType === 'project') {
+            await restoreProject(lastDeletedId);
+        }
+        lastDeletedId = null;
+        lastDeletedType = null;
+    }
+}
+
+async function openRecycleBinModal() {
+    if (userRole !== 'admin') return;
+    trashDisplayLimit = 10;
+    currentTrashTab = 'users';
+    
+    document.querySelectorAll('.trash-tab-btn').forEach(btn => btn.classList.remove('active'));
+    const userTab = document.getElementById('tab-trash-users');
+    if (userTab) userTab.classList.add('active');
+    
+    await renderTrashList();
+    document.getElementById('recycle-bin-modal').style.display = 'flex';
+}
+
+function closeRecycleBinModal() {
+    document.getElementById('recycle-bin-modal').style.display = 'none';
+    trashDisplayLimit = 10;
+}
+
+async function switchTrashTab(tabName) {
+    currentTrashTab = tabName;
+    trashDisplayLimit = 10;
+    
+    document.querySelectorAll('.trash-tab-btn').forEach(btn => btn.classList.remove('active'));
+    const activeTab = document.getElementById('tab-trash-' + tabName);
+    if (activeTab) activeTab.classList.add('active');
+    
+    await renderTrashList();
+}
+
+function loadMoreTrash() {
+    trashDisplayLimit += 10;
+    renderTrashList();
+}
+
+function toggleTrashGroupDetail(groupId) {
+    const el = document.getElementById('group-detail-' + groupId);
+    const icon = document.getElementById('group-icon-' + groupId);
+    if (el) {
+        if (el.style.display === 'none') {
+            el.style.display = 'table-row';
+            if (icon) icon.style.transform = 'rotate(90deg)';
+        } else {
+            el.style.display = 'none';
+            if (icon) icon.style.transform = 'rotate(0deg)';
+        }
+    }
+}
+
+async function restoreTrashItem(id, type) {
+    if (type === 'user') {
+        await dbHelper.restoreUser(id);
+        authUsers = await dbHelper.getUsers();
+        renderAuthUsers();
+    } else if (type === 'project') {
+        await restoreProject(id);
+    }
+    await renderTrashList();
+}
+
+async function purgeTrashItem(id, type, name) {
+    const confirmed = await showCustomConfirm(
+        "Permanently Delete",
+        "Are you sure you want to permanently delete " + type + " <strong style=\"color:var(--dark);font-weight:700;\">" + name + "</strong>? This action cannot be undone.",
+        true,
+        "Delete Permanently"
+    );
+    if (confirmed) {
+        if (type === 'user') {
+            if (db) {
+                try { await db.collection('trash_users').doc(id).delete(); } catch(e) {}
+            }
+            let trashUsers = [];
+            try {
+                const stored = localStorage.getItem('trash_engineTrackerUsers');
+                trashUsers = stored ? JSON.parse(stored) : [];
+            } catch(e) {}
+            trashUsers = trashUsers.filter(u => u.id !== id);
+            localStorage.setItem('trash_engineTrackerUsers', JSON.stringify(trashUsers));
+        } else if (type === 'project') {
+            if (db) {
+                try { await db.collection('trash_project_registry').doc(id).delete(); } catch(e) {}
+                try {
+                    const snapshot = await db.collection('trash_' + id + '_records').get();
+                    const batch = db.batch();
+                    snapshot.docs.forEach(doc => batch.delete(doc.ref));
+                    await batch.commit();
+                } catch(e) {}
+            }
+            let trashProjects = [];
+            try {
+                const stored = localStorage.getItem('trash_project_registry');
+                trashProjects = stored ? JSON.parse(stored) : [];
+            } catch(e) {}
+            trashProjects = trashProjects.filter(p => p.id !== id);
+            localStorage.setItem('trash_project_registry', JSON.stringify(trashProjects));
+            localStorage.removeItem('trash_' + id + 'TrackerData');
+        }
+        await renderTrashList();
+    }
+}
+
+async function restoreAssignmentFromDashboard(id, projectName) {
+    const activeRegistry = getProjectRegistry();
+    let deletedRegistry = [];
+    if (db) {
+        try {
+            const snapshot = await db.collection('trash_project_registry').get();
+            deletedRegistry = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        } catch(e) {}
+    } else {
+        const stored = localStorage.getItem('trash_project_registry');
+        deletedRegistry = stored ? JSON.parse(stored) : [];
+    }
+    const allProjects = [...activeRegistry, ...deletedRegistry];
+    const staticProjects = [
+        { id: 'engines', name: 'Engine VR', firestoreCollection: 'engines', trashCollection: 'trash_engines', localStorageKey: 'engineTrackerData', trashKey: 'trash_engineTrackerData' },
+        { id: 'gutfeeling_engines', name: 'GutFeeling', firestoreCollection: 'gutfeeling_engines', trashCollection: 'trash_gutfeeling_engines', localStorageKey: 'gutfeelingTrackerData', trashKey: 'trash_gutfeelingTrackerData' },
+        { id: 'chaff_engines', name: 'Chaff Extension', firestoreCollection: 'chaff_engines', trashCollection: 'trash_chaff_engines', localStorageKey: 'chaffTrackerData', trashKey: 'trash_chaffTrackerData' }
+    ];
+
+    let matchedProject = staticProjects.find(p => p.name === projectName);
+    if (!matchedProject) {
+        const dynProj = allProjects.find(p => p.name === projectName || p.brand === projectName);
+        if (dynProj) {
+            matchedProject = {
+                id: dynProj.id,
+                firestoreCollection: dynProj.firestoreCollection || (dynProj.id + '_records'),
+                trashCollection: 'trash_' + dynProj.id + '_records',
+                localStorageKey: dynProj.localStorageKey || (dynProj.id + 'TrackerData'),
+                trashKey: 'trash_' + dynProj.id + 'TrackerData'
+            };
+        }
+    }
+
+    if (!matchedProject) return;
+
+    if (db) {
+        try {
+            const doc = await db.collection(matchedProject.trashCollection).doc(id).get();
+            if (doc.exists) {
+                const restoredData = { ...doc.data() };
+                delete restoredData.deletedAt;
+                await db.collection(matchedProject.firestoreCollection).doc(id).set(restoredData);
+                await db.collection(matchedProject.trashCollection).doc(id).delete();
+            }
+        } catch(e) { console.error(e); }
+    }
+
+    let trashRecords = [];
+    try {
+        const stored = localStorage.getItem(matchedProject.trashKey);
+        trashRecords = stored ? JSON.parse(stored) : [];
+    } catch(e) {}
+    const record = trashRecords.find(r => r.id === id);
+    if (record) {
+        const restored = { ...record };
+        delete restored.deletedAt;
+        
+        trashRecords = trashRecords.filter(r => r.id !== id);
+        localStorage.setItem(matchedProject.trashKey, JSON.stringify(trashRecords));
+
+        let activeRecords = [];
+        try {
+            const stored = localStorage.getItem(matchedProject.localStorageKey);
+            activeRecords = stored ? JSON.parse(stored) : [];
+        } catch(e) {}
+        activeRecords.push(restored);
+        localStorage.setItem(matchedProject.localStorageKey, JSON.stringify(activeRecords));
+    }
+}
+
+async function purgeAssignmentFromDashboard(id, projectName, assignmentName) {
+    const confirmed = await showCustomConfirm(
+        "Permanently Delete",
+        "Are you sure you want to permanently delete assignment <strong style=\"color:var(--dark);font-weight:700;\">" + assignmentName + "</strong>? This action cannot be undone.",
+        true,
+        "Delete Permanently"
+    );
+    if (!confirmed) return;
+
+    const activeRegistry = getProjectRegistry();
+    let deletedRegistry = [];
+    if (db) {
+        try {
+            const snapshot = await db.collection('trash_project_registry').get();
+            deletedRegistry = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        } catch(e) {}
+    } else {
+        const stored = localStorage.getItem('trash_project_registry');
+        deletedRegistry = stored ? JSON.parse(stored) : [];
+    }
+    const allProjects = [...activeRegistry, ...deletedRegistry];
+    const staticProjects = [
+        { id: 'engines', name: 'Engine VR', firestoreCollection: 'engines', trashCollection: 'trash_engines', localStorageKey: 'engineTrackerData', trashKey: 'trash_engineTrackerData' },
+        { id: 'gutfeeling_engines', name: 'GutFeeling', firestoreCollection: 'gutfeeling_engines', trashCollection: 'trash_gutfeeling_engines', localStorageKey: 'gutfeelingTrackerData', trashKey: 'trash_gutfeelingTrackerData' },
+        { id: 'chaff_engines', name: 'Chaff Extension', firestoreCollection: 'chaff_engines', trashCollection: 'trash_chaff_engines', localStorageKey: 'chaffTrackerData', trashKey: 'trash_chaffTrackerData' }
+    ];
+
+    let matchedProject = staticProjects.find(p => p.name === projectName);
+    if (!matchedProject) {
+        const dynProj = allProjects.find(p => p.name === projectName || p.brand === projectName);
+        if (dynProj) {
+            matchedProject = {
+                id: dynProj.id,
+                firestoreCollection: dynProj.firestoreCollection || (dynProj.id + '_records'),
+                trashCollection: 'trash_' + dynProj.id + '_records',
+                localStorageKey: dynProj.localStorageKey || (dynProj.id + 'TrackerData'),
+                trashKey: 'trash_' + dynProj.id + 'TrackerData'
+            };
+        }
+    }
+
+    if (!matchedProject) return;
+
+    if (db) {
+        try {
+            await db.collection(matchedProject.trashCollection).doc(id).delete();
+        } catch(e) { console.error(e); }
+    }
+
+    let trashRecords = [];
+    try {
+        const stored = localStorage.getItem(matchedProject.trashKey);
+        trashRecords = stored ? JSON.parse(stored) : [];
+    } catch(e) {}
+    trashRecords = trashRecords.filter(r => r.id !== id);
+    localStorage.setItem(matchedProject.trashKey, JSON.stringify(trashRecords));
+
+    await renderTrashList();
+}
+
+async function restoreTrashGroup(idString, projectName) {
+    const ids = idString.split(',');
+    for (const id of ids) {
+        if (currentTrashTab === 'users') {
+            await dbHelper.restoreUser(id);
+        } else if (currentTrashTab === 'projects') {
+            await restoreProject(id);
+        } else if (currentTrashTab === 'assignments') {
+            await restoreAssignmentFromDashboard(id, projectName);
+        }
+    }
+    if (currentTrashTab === 'users') {
+        await loadUsers();
+    }
+    await renderTrashList();
+}
+
+async function purgeTrashGroup(idString, projectName, count) {
+    const confirmed = await showCustomConfirm(
+        "Permanently Delete Batch",
+        "Are you sure you want to permanently delete this batch of " + count + " items? This action cannot be undone.",
+        true,
+        "Delete Batch"
+    );
+    if (confirmed) {
+        const ids = idString.split(',');
+        for (const id of ids) {
+            if (currentTrashTab === 'users') {
+                if (db) { try { await db.collection('trash_users').doc(id).delete(); } catch(e) {} }
+                let trashUsers = [];
+                try {
+                    const stored = localStorage.getItem('trash_engineTrackerUsers');
+                    trashUsers = stored ? JSON.parse(stored) : [];
+                } catch(e) {}
+                trashUsers = trashUsers.filter(u => u.id !== id);
+                localStorage.setItem('trash_engineTrackerUsers', JSON.stringify(trashUsers));
+            } else if (currentTrashTab === 'projects') {
+                if (db) {
+                    try { await db.collection('trash_project_registry').doc(id).delete(); } catch(e) {}
+                    try {
+                        const snapshot = await db.collection('trash_' + id + '_records').get();
+                        const batch = db.batch();
+                        snapshot.docs.forEach(doc => batch.delete(doc.ref));
+                        await batch.commit();
+                    } catch(e) {}
+                }
+                let trashProjects = [];
+                try {
+                    const stored = localStorage.getItem('trash_project_registry');
+                    trashProjects = stored ? JSON.parse(stored) : [];
+                } catch(e) {}
+                trashProjects = trashProjects.filter(p => p.id !== id);
+                localStorage.setItem('trash_project_registry', JSON.stringify(trashProjects));
+                localStorage.removeItem('trash_' + id + 'TrackerData');
+            } else if (currentTrashTab === 'assignments') {
+                const activeRegistry = getProjectRegistry();
+                let deletedRegistry = [];
+                if (db) {
+                    try {
+                        const snapshot = await db.collection('trash_project_registry').get();
+                        deletedRegistry = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                    } catch(e) {}
+                } else {
+                    const stored = localStorage.getItem('trash_project_registry');
+                    deletedRegistry = stored ? JSON.parse(stored) : [];
+                }
+                const allProjects = [...activeRegistry, ...deletedRegistry];
+                const staticProjects = [
+                    { id: 'engines', name: 'Engine VR', firestoreCollection: 'engines', trashCollection: 'trash_engines', localStorageKey: 'engineTrackerData', trashKey: 'trash_engineTrackerData' },
+                    { id: 'gutfeeling_engines', name: 'GutFeeling', firestoreCollection: 'gutfeeling_engines', trashCollection: 'trash_gutfeeling_engines', localStorageKey: 'gutfeelingTrackerData', trashKey: 'trash_gutfeelingTrackerData' },
+                    { id: 'chaff_engines', name: 'Chaff Extension', firestoreCollection: 'chaff_engines', trashCollection: 'trash_chaff_engines', localStorageKey: 'chaffTrackerData', trashKey: 'trash_chaffTrackerData' }
+                ];
+
+                let matchedProject = staticProjects.find(p => p.name === projectName);
+                if (!matchedProject) {
+                    const dynProj = allProjects.find(p => p.name === projectName || p.brand === projectName);
+                    if (dynProj) {
+                        matchedProject = {
+                            id: dynProj.id,
+                            firestoreCollection: dynProj.firestoreCollection || (dynProj.id + '_records'),
+                            trashCollection: 'trash_' + dynProj.id + '_records',
+                            localStorageKey: dynProj.localStorageKey || (dynProj.id + 'TrackerData'),
+                            trashKey: 'trash_' + dynProj.id + 'TrackerData'
+                        };
+                    }
+                }
+
+                if (matchedProject) {
+                    if (db) {
+                        try {
+                            await db.collection(matchedProject.trashCollection).doc(id).delete();
+                        } catch(e) {}
+                    }
+                    let trashRecords = [];
+                    try {
+                        const stored = localStorage.getItem(matchedProject.trashKey);
+                        trashRecords = stored ? JSON.parse(stored) : [];
+                    } catch(e) {}
+                    trashRecords = trashRecords.filter(r => r.id !== id);
+                    localStorage.setItem(matchedProject.trashKey, JSON.stringify(trashRecords));
+                }
+            }
+        }
+        await renderTrashList();
+    }
+}
+
+async function emptyUniversalTrashTab() {
+    const confirmed = await showCustomConfirm(
+        "Empty Tab",
+        "Are you sure you want to permanently clear all items in the current tab? This action cannot be undone.",
+        true,
+        "Empty Tab"
+    );
+    if (!confirmed) return;
+
+    if (currentTrashTab === 'users') {
+        if (db) {
+            try {
+                const snapshot = await db.collection('trash_users').get();
+                const batch = db.batch();
+                snapshot.docs.forEach(doc => batch.delete(doc.ref));
+                await batch.commit();
+            } catch(e) {}
+        }
+        localStorage.setItem('trash_engineTrackerUsers', JSON.stringify([]));
+    } else if (currentTrashTab === 'projects') {
+        if (db) {
+            try {
+                const snapshot = await db.collection('trash_project_registry').get();
+                const batch = db.batch();
+                snapshot.docs.forEach(doc => {
+                    batch.delete(doc.ref);
+                    db.collection('trash_' + doc.id + '_records').get().then(snap => {
+                        const innerBatch = db.batch();
+                        snap.docs.forEach(d => innerBatch.delete(d.ref));
+                        innerBatch.commit().catch(err => console.error(err));
+                    }).catch(err => console.error(err));
+                });
+                await batch.commit();
+            } catch(e) {}
+        }
+        
+        let trashProjects = [];
+        try {
+            const stored = localStorage.getItem('trash_project_registry');
+            trashProjects = stored ? JSON.parse(stored) : [];
+        } catch(e) {}
+        trashProjects.forEach(p => {
+            localStorage.removeItem('trash_' + p.id + 'TrackerData');
+        });
+        localStorage.setItem('trash_project_registry', JSON.stringify([]));
+    } else if (currentTrashTab === 'assignments') {
+        const activeRegistry = getProjectRegistry();
+        let deletedRegistry = [];
+        if (db) {
+            try {
+                const snapshot = await db.collection('trash_project_registry').get();
+                deletedRegistry = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            } catch(e) {}
+        } else {
+            const stored = localStorage.getItem('trash_project_registry');
+            deletedRegistry = stored ? JSON.parse(stored) : [];
+        }
+        const allProjects = [...activeRegistry, ...deletedRegistry];
+        const staticProjects = [
+            { id: 'engines', firestoreCollection: 'trash_engines', localStorageKey: 'trash_engineTrackerData' },
+            { id: 'gutfeeling_engines', firestoreCollection: 'trash_gutfeeling_engines', localStorageKey: 'trash_gutfeelingTrackerData' },
+            { id: 'chaff_engines', firestoreCollection: 'trash_chaff_engines', localStorageKey: 'trash_chaffTrackerData' }
+        ];
+
+        for (const p of staticProjects) {
+            if (db) {
+                try {
+                    const snapshot = await db.collection(p.firestoreCollection).get();
+                    const batch = db.batch();
+                    snapshot.docs.forEach(doc => batch.delete(doc.ref));
+                    await batch.commit();
+                } catch(e) {}
+            }
+            localStorage.setItem(p.localStorageKey, JSON.stringify([]));
+        }
+
+        for (const p of allProjects) {
+            const colName = 'trash_' + p.id + '_records';
+            const keyName = 'trash_' + p.id + 'TrackerData';
+            if (db) {
+                try {
+                    const snapshot = await db.collection(colName).get();
+                    const batch = db.batch();
+                    snapshot.docs.forEach(doc => batch.delete(doc.ref));
+                    await batch.commit();
+                } catch(e) {}
+            }
+            localStorage.setItem(keyName, JSON.stringify([]));
+        }
+    }
+
+    await renderTrashList();
 }
 </script>
 </body>
