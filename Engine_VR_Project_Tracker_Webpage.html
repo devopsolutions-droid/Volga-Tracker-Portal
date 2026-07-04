@@ -1265,29 +1265,7 @@ details[open] .accordion-chevron {
             </div>
         </div>
 
-        <!-- Admin Data Cleanup (admin only) -->
-        <div id="admin-cleanup-zone" style="display:none; margin-top:18px; padding-top:14px; border-top:1px dashed #e2e8f0;">
-            <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px;">
-                <div>
-                    <div style="font-size:0.8rem; font-weight:700; color:#94a3b8; text-transform:uppercase; letter-spacing:0.5px;">Data Cleanup</div>
-                    <div style="font-size:0.78rem; color:#64748b; margin-top:2px;">Keep only the first <strong id="keep-count-label">10</strong> records — permanently delete the rest.</div>
-                </div>
-                <div style="display:flex; align-items:center; gap:8px;">
-                    <input type="number" id="keep-count-input" value="10" min="1" max="500"
-                        style="width:64px; padding:6px 8px; border:1.5px solid #e2e8f0; border-radius:7px; font-size:0.88rem; font-family:inherit; text-align:center;"
-                        oninput="document.getElementById('keep-count-label').innerText=this.value||'?'">
-                    <button onclick="purgeRecordsKeepFirst()"
-                        style="display:inline-flex; align-items:center; gap:6px; padding:7px 14px; background:rgba(239,68,68,0.08); border:1.5px solid rgba(239,68,68,0.3); border-radius:8px; color:#dc2626; font-size:0.82rem; font-weight:700; cursor:pointer; font-family:inherit; transition:all 0.15s;"
-                        onmouseover="this.style.background='#ef4444';this.style.color='#fff';this.style.borderColor='#ef4444';"
-                        onmouseout="this.style.background='rgba(239,68,68,0.08)';this.style.color='#dc2626';this.style.borderColor='rgba(239,68,68,0.3)';">
-                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                            <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/>
-                        </svg>
-                        Purge Extra Records
-                    </button>
-                </div>
-            </div>
-        </div>
+
     </div>
 
     <!-- Search and Filter -->
@@ -1334,7 +1312,6 @@ details[open] .accordion-chevron {
         <p style="font-size: 0.9rem; color: #666; margin-top: -10px; margin-bottom: 15px;">Click on a user to expand and view their assigned engines.</p>
         <div id="userSections"></div>
     </div>
-
 
     <footer style="margin-top: 40px; text-align: center; padding: 20px 0; font-size: 0.85rem; color: #777; border-top: 1px solid var(--border);">
         &copy; 2026 Volga Infosys Private Limited. All rights reserved. &bull; Engine VR Project Integration Tracker
@@ -1695,6 +1672,8 @@ document.addEventListener("DOMContentLoaded", async function() {
     } else {
         const addForm = document.getElementById('add-form-card');
         if (addForm) addForm.style.display = 'none';
+        const cleanupZone = document.getElementById('admin-cleanup-zone');
+        if (cleanupZone) cleanupZone.style.display = 'none';
     }
 
     const btnRecycle = document.getElementById('btn-recycle-bin');
@@ -2362,74 +2341,6 @@ async function saveInline(id) {
 function cancelInline() {
     editingId = null;
     render();
-}
-
-// ─── Data Cleanup ─────────────────────────────────────────────────────────────
-async function purgeRecordsKeepFirst() {
-    if (userRole !== 'admin') return;
-
-    const keepN = parseInt(document.getElementById('keep-count-input')?.value) || 10;
-    const allRecords = await dbHelper.getRecords();
-
-    if (allRecords.length <= keepN) {
-        await showCustomAlert('Nothing to purge', `There are only ${allRecords.length} records — all within the keep limit of ${keepN}.`, false);
-        return;
-    }
-
-    // Sort by assigned date ascending (oldest first = earliest entries at top)
-    const sorted = [...allRecords].sort((a, b) => {
-        const da = a.assigned || a.createdAt || '';
-        const db2 = b.assigned || b.createdAt || '';
-        return da < db2 ? -1 : da > db2 ? 1 : 0;
-    });
-
-    const toKeep   = sorted.slice(0, keepN);
-    const toDelete = sorted.slice(keepN);
-
-    const confirmed = await showCustomConfirm(
-        'Purge Records?',
-        `This will <strong style="color:#ef4444;">permanently delete ${toDelete.length} records</strong>, keeping only the first <strong>${keepN}</strong> (sorted by assigned date). This cannot be undone.`,
-        true, 'Yes, Delete Them', false
-    );
-    if (!confirmed) return;
-
-    const deletedAtStr = new Date().toISOString();
-
-    // Delete from Firestore in a batch and move to trash
-    if (db) {
-        try {
-            const batch = db.batch();
-            toDelete.forEach(r => {
-                if (r.id) {
-                    const trashRecord = { ...r, deletedAt: deletedAtStr };
-                    batch.set(db.collection('trash_engines').doc(r.id), trashRecord);
-                    batch.delete(db.collection('engines').doc(r.id));
-                }
-            });
-            await batch.commit();
-        } catch(e) {
-            console.error('Batch delete failed:', e);
-        }
-    }
-
-    // Update localStorage active
-    localStorage.setItem('engineTrackerData', JSON.stringify(toKeep));
-
-    // Update localStorage trash
-    let trashRecords = [];
-    try {
-        const stored = localStorage.getItem('trash_engineTrackerData');
-        trashRecords = stored ? JSON.parse(stored) : [];
-    } catch(e) {}
-    const newTrash = toDelete.map(r => ({ ...r, deletedAt: deletedAtStr }));
-    trashRecords = [...newTrash, ...trashRecords];
-    localStorage.setItem('trash_engineTrackerData', JSON.stringify(trashRecords));
-
-    // Reload in-memory data and re-render
-    data = await dbHelper.getRecords();
-    render();
-
-    await showCustomAlert('Done', `Kept ${toKeep.length} records. Deleted ${toDelete.length}.`, false);
 }
 
 // Delete Record

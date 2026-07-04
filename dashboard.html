@@ -352,6 +352,157 @@ body {
 }
 .btn-admin-create:hover { background: #7c3aed; }
 
+/* ── Cleanup panel custom responsive styles ── */
+.cleanup-create-row {
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
+    margin-bottom: 15px;
+    align-items: center;
+}
+.cleanup-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.cleanup-group label {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #94a3b8;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+.cleanup-group select {
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    padding: 8px 32px 8px 12px;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 0.88rem;
+    font-weight: 600;
+    font-family: inherit;
+    background-color: #f8fafc;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    background-size: 14px;
+    color: var(--dark);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    outline: none;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+}
+.cleanup-group select:hover {
+    background-color: #f1f5f9;
+    border-color: #cbd5e1;
+}
+.cleanup-group select:focus {
+    border-color: var(--primary);
+    background-color: #ffffff;
+    box-shadow: 0 0 0 3px rgba(59,130,246,0.15);
+}
+.cleanup-range-inputs {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+.cleanup-range-inputs span {
+    font-size: 0.8rem;
+    color: #64748b;
+    font-weight: 600;
+}
+.cleanup-range-inputs input,
+.cleanup-age-input {
+    border: 1.5px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    font-family: inherit;
+    background-color: #f8fafc;
+    color: var(--dark);
+    text-align: center;
+    transition: all 0.2s ease;
+    outline: none;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+}
+.cleanup-range-inputs input {
+    width: 65px;
+    padding: 7px 6px;
+}
+.cleanup-age-input {
+    width: 70px;
+    padding: 7px 6px;
+}
+.cleanup-range-inputs input:hover,
+.cleanup-age-input:hover {
+    background-color: #f1f5f9;
+    border-color: #cbd5e1;
+}
+.cleanup-range-inputs input:focus,
+.cleanup-age-input:focus {
+    border-color: var(--primary);
+    background-color: #ffffff;
+    box-shadow: 0 0 0 3px rgba(59,130,246,0.15);
+}
+.btn-cleanup-execute {
+    background: #ef4444;
+    border: none;
+    box-shadow: 0 3px 0 #b91c1c;
+    margin-left: auto;
+    padding: 6px 12px;
+    font-size: 0.85rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    border-radius: 8px;
+    color: white;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.15s;
+}
+.btn-cleanup-execute:hover {
+    background: #dc2626;
+    box-shadow: 0 3px 0 #991b1b;
+}
+.btn-cleanup-execute:active {
+    transform: translateY(2px);
+    box-shadow: 0 1px 0 #991b1b;
+}
+
+@media (max-width: 576px) {
+    .cleanup-create-row {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 12px;
+    }
+    .cleanup-group {
+        justify-content: space-between;
+    }
+    .cleanup-group select {
+        flex: 1;
+        max-width: none;
+    }
+    .cleanup-range-inputs {
+        justify-content: space-between;
+        width: 100%;
+    }
+    .cleanup-range-inputs input {
+        flex: 1;
+        max-width: 80px;
+    }
+    .cleanup-age-input {
+        width: 100%;
+    }
+    .btn-cleanup-execute {
+        width: 100%;
+        justify-content: center;
+        margin-left: 0;
+        margin-top: 5px;
+    }
+}
+
 /* User Grid */
 .user-grid {
     display: grid;
@@ -2273,6 +2424,82 @@ footer {
         </div>
     </div>
 
+    <!-- Clean Up Old Records Card -->
+    <div class="admin-action-card red-border" style="border-left: 4px solid #ef4444;">
+        <div class="admin-card-header" onclick="toggleCleanupManagement()">
+            <div class="admin-card-icon red" style="background: rgba(239,68,68,0.1); color: #ef4444;">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/>
+                </svg>
+            </div>
+            <div class="admin-card-text">
+                <div class="admin-card-title-row">
+                    <p class="admin-card-title red" style="color: #dc2626; font-weight: 700; margin: 0; font-size: 0.95rem;">Clean Up Old Records</p>
+                </div>
+                <p class="admin-card-subtitle">Delete or clean up older records across any tracker project</p>
+            </div>
+            <svg class="admin-card-chevron" id="cleanup-mgmt-toggle-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="m9 6 6 6-6 6"/>
+            </svg>
+        </div>
+        <div id="cleanup-management-container" class="admin-card-body" style="display:none;">
+            <p style="font-size:0.84rem;color:#64748b;margin:0 0 14px;">Select a project workspace and move older engine assignments to the Recycle Bin to optimize display and database storage.</p>
+            
+            <div class="cleanup-create-row">
+                <!-- Project Selector Dropdown -->
+                <div class="cleanup-group">
+                    <label for="cleanup-project-select">Project:</label>
+                    <select id="cleanup-project-select" onchange="onCleanupProjectChange()">
+                        <!-- Options populated dynamically -->
+                    </select>
+                </div>
+                
+                <!-- Clean Up Mode -->
+                <div class="cleanup-group">
+                    <label for="cleanup-mode">Mode:</label>
+                    <select id="cleanup-mode" onchange="toggleCleanupModeFieldsDashboard()">
+                        <option value="index">Delete by Row Range (From Row A to B)</option>
+                        <option value="age">Delete Older than X Days</option>
+                    </select>
+                </div>
+
+                <!-- Input Controls -->
+                <div id="dashboard-cleanup-index-range-inputs" class="cleanup-range-inputs">
+                    <span>From:</span>
+                    <input type="number" id="dashboard-start-index-input" value="1" min="1" max="10000"
+                        oninput="updateDashboardCleanupRangeLabel()">
+                    
+                    <span>To:</span>
+                    <input type="number" id="dashboard-end-index-input" value="10" min="1" max="10000"
+                        oninput="updateDashboardCleanupRangeLabel()">
+                </div>
+                
+                <input type="number" id="dashboard-age-count-input" value="30" min="1" max="365" class="cleanup-age-input" style="display:none;"
+                    oninput="document.getElementById('dashboard-age-count-label').innerText=this.value||'?'">
+                
+                <button onclick="executeDashboardCleanup()" class="btn-cleanup-execute">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/>
+                    </svg>
+                    Clean Up Now
+                </button>
+            </div>
+
+            <!-- Settings Banner / Description -->
+            <div style="padding:10px 12px; background:rgba(0,0,0,0.02); border-radius:8px; border:1px solid rgba(0,0,0,0.05); display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+                <div>
+                    <div style="font-size:0.75rem; font-weight:700; color:#94a3b8; text-transform:uppercase; letter-spacing:0.5px;">Clean Up Description</div>
+                    <div id="dashboard-cleanup-description-label" style="font-size:0.82rem; color:#64748b; margin-top:2px;">
+                        Move rows <strong id="dashboard-start-index-label" style="color:#dc2626; font-weight:700;">1</strong> to <strong id="dashboard-end-index-label" style="color:#dc2626; font-weight:700;">10</strong> (inclusive) of the selected project to the Recycle Bin.
+                    </div>
+                </div>
+                <div id="dashboard-project-info-label" style="font-size:0.8rem; color:#94a3b8; font-weight:600;">
+                    Total Records: <span id="dashboard-project-total-count" style="color:#475569; font-weight:700;">...</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
 </div><!-- /.admin-grid -->
 
 <footer>
@@ -3405,6 +3632,296 @@ function toggleCreateProject() {
         container.style.display = 'none';
         if (icon) icon.classList.remove('rotated');
     }
+}
+
+// ─── Universal Clean Up Old Records (Admin Only) ──────────────────────────────────
+let dashboardCleanupRecords = [];
+
+function toggleCleanupManagement() {
+    const container = document.getElementById('cleanup-management-container');
+    const icon = document.getElementById('cleanup-mgmt-toggle-icon');
+    if (container.style.display === 'none') {
+        container.style.display = 'block';
+        if (icon) icon.classList.add('rotated');
+        populateCleanupProjects();
+    } else {
+        container.style.display = 'none';
+        if (icon) icon.classList.remove('rotated');
+    }
+}
+
+function resolveProjectKeys(project) {
+    if (project.id === 'engine_vr' || project.id === 'engines') {
+        return {
+            id: 'engine_vr',
+            name: 'Engine VR',
+            firestoreCollection: 'engines',
+            trashCollection: 'trash_engines',
+            localStorageKey: 'engineTrackerData',
+            trashKey: 'trash_engineTrackerData'
+        };
+    }
+    if (project.id === 'gutfeeling' || project.id === 'gutfeeling_engines') {
+        return {
+            id: 'gutfeeling',
+            name: 'GutFeeling',
+            firestoreCollection: 'gutfeeling_engines',
+            trashCollection: 'trash_gutfeeling_engines',
+            localStorageKey: 'gutfeelingTrackerData',
+            trashKey: 'trash_gutfeelingTrackerData'
+        };
+    }
+    if (project.id === 'chaff' || project.id === 'chaff_engines') {
+        return {
+            id: 'chaff',
+            name: 'Chaff Extension',
+            firestoreCollection: 'chaff_engines',
+            trashCollection: 'trash_chaff_engines',
+            localStorageKey: 'chaffTrackerData',
+            trashKey: 'trash_chaffTrackerData'
+        };
+    }
+
+    return {
+        id: project.id,
+        name: project.name,
+        firestoreCollection: project.firestoreCollection || (project.id + '_records'),
+        trashCollection: 'trash_' + project.id + '_records',
+        localStorageKey: project.localStorageKey || (project.id + 'TrackerData'),
+        trashKey: 'trash_' + project.id + 'TrackerData'
+    };
+}
+
+async function populateCleanupProjects() {
+    if (userRole !== 'admin') return;
+    const select = document.getElementById('cleanup-project-select');
+    if (!select) return;
+
+    const projects = getDlProjects();
+    select.innerHTML = projects.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
+
+    await onCleanupProjectChange();
+}
+
+async function onCleanupProjectChange() {
+    if (userRole !== 'admin') return;
+    const select = document.getElementById('cleanup-project-select');
+    if (!select) return;
+
+    const projectId = select.value;
+    const project = getDlProjects().find(p => p.id === projectId);
+    if (!project) return;
+
+    const resolved = resolveProjectKeys(project);
+
+    document.getElementById('dashboard-project-total-count').innerText = 'Loading...';
+
+    dashboardCleanupRecords = await getDlRecordsAsync(project);
+
+    document.getElementById('dashboard-project-total-count').innerText = dashboardCleanupRecords.length;
+
+    const endInput = document.getElementById('dashboard-end-index-input');
+    if (endInput) {
+        endInput.max = dashboardCleanupRecords.length;
+        endInput.value = Math.min(10, dashboardCleanupRecords.length);
+    }
+    const startInput = document.getElementById('dashboard-start-index-input');
+    if (startInput) {
+        startInput.value = dashboardCleanupRecords.length > 0 ? 1 : 0;
+        startInput.max = dashboardCleanupRecords.length;
+    }
+
+    updateDashboardCleanupRangeLabel();
+}
+
+function toggleCleanupModeFieldsDashboard() {
+    const mode = document.getElementById('cleanup-mode').value;
+    const rangeContainer = document.getElementById('dashboard-cleanup-index-range-inputs');
+    const ageInput = document.getElementById('dashboard-age-count-input');
+    const labelContainer = document.getElementById('dashboard-cleanup-description-label');
+    
+    if (mode === 'index') {
+        rangeContainer.style.display = 'flex';
+        ageInput.style.display = 'none';
+        updateDashboardCleanupRangeLabel();
+    } else {
+        rangeContainer.style.display = 'none';
+        ageInput.style.display = 'block';
+        labelContainer.innerHTML = `Move records older than <strong id="dashboard-age-count-label" style="color: #dc2626; font-weight: 700;">${ageInput.value || 30}</strong> days (based on assigned date) to the Recycle Bin.`;
+    }
+}
+
+function updateDashboardCleanupRangeLabel() {
+    const fromVal = document.getElementById('dashboard-start-index-input')?.value || '1';
+    const toVal = document.getElementById('dashboard-end-index-input')?.value || '10';
+    const labelContainer = document.getElementById('dashboard-cleanup-description-label');
+    if (labelContainer) {
+        labelContainer.innerHTML = `Move rows <strong style="color: #dc2626; font-weight: 700;">${fromVal}</strong> to <strong style="color: #dc2626; font-weight: 700;">${toVal}</strong> (inclusive) of the selected project to the Recycle Bin.`;
+    }
+}
+
+async function executeDashboardCleanup() {
+    if (userRole !== 'admin') return;
+    const mode = document.getElementById('cleanup-mode').value;
+    if (mode === 'index') {
+        await dashboardCleanupByIndexRange();
+    } else {
+        await dashboardCleanupByAge();
+    }
+}
+
+async function dashboardCleanupByIndexRange() {
+    if (userRole !== 'admin') return;
+
+    const select = document.getElementById('cleanup-project-select');
+    const project = getDlProjects().find(p => p.id === select?.value);
+    if (!project) return;
+
+    const resolved = resolveProjectKeys(project);
+
+    const fromIdx = parseInt(document.getElementById('dashboard-start-index-input')?.value) || 1;
+    const toIdx = parseInt(document.getElementById('dashboard-end-index-input')?.value) || 10;
+
+    if (fromIdx > toIdx) {
+        await showCustomAlert('Validation Error', 'Start row cannot be greater than end row.', true);
+        return;
+    }
+
+    if (dashboardCleanupRecords.length === 0) {
+        await showCustomAlert('Nothing to Clean Up', 'There are no records in this project.', false);
+        return;
+    }
+
+    const sorted = [...dashboardCleanupRecords].sort((a, b) => {
+        const da = a.assigned || a.createdAt || '';
+        const db2 = b.assigned || b.createdAt || '';
+        return da < db2 ? -1 : da > db2 ? 1 : 0;
+    });
+
+    if (fromIdx > sorted.length) {
+        await showCustomAlert('Validation Error', `Start row (${fromIdx}) exceeds total records count (${sorted.length}).`, true);
+        return;
+    }
+
+    const toDelete = sorted.slice(fromIdx - 1, toIdx);
+    const toKeep = sorted.filter(r => !toDelete.includes(r));
+
+    if (toDelete.length === 0) {
+        await showCustomAlert('Nothing to Clean Up', 'No records found in the specified range.', false);
+        return;
+    }
+
+    const confirmed = await showCustomConfirm(
+        'Confirm Clean Up?',
+        `This will <strong style="color:#ef4444;">move ${toDelete.length} records</strong> (from row <strong>${fromIdx}</strong> to <strong>${Math.min(toIdx, sorted.length)}</strong>) of project <strong>${resolved.name}</strong> to the Recycle Bin. This cannot be undone.`,
+        true, 'Yes, Move Them', false
+    );
+    if (!confirmed) return;
+
+    const deletedAtStr = new Date().toISOString();
+
+    if (db) {
+        try {
+            const batch = db.batch();
+            toDelete.forEach(r => {
+                if (r.id) {
+                    const trashRecord = { ...r, deletedAt: deletedAtStr };
+                    batch.set(db.collection(resolved.trashCollection).doc(r.id), trashRecord);
+                    batch.delete(db.collection(resolved.firestoreCollection).doc(r.id));
+                }
+            });
+            await batch.commit();
+        } catch(e) {
+            console.error('Batch delete failed:', e);
+        }
+    }
+
+    localStorage.setItem(resolved.localStorageKey, JSON.stringify(toKeep));
+
+    let trashRecords = [];
+    try {
+        const stored = localStorage.getItem(resolved.trashKey);
+        trashRecords = stored ? JSON.parse(stored) : [];
+    } catch(e) {}
+    const newTrash = toDelete.map(r => ({ ...r, deletedAt: deletedAtStr }));
+    trashRecords = [...newTrash, ...trashRecords];
+    localStorage.setItem(resolved.trashKey, JSON.stringify(trashRecords));
+
+    await onCleanupProjectChange();
+
+    await showCustomAlert('Done', `Moved ${toDelete.length} records to the Recycle Bin.`, false);
+}
+
+async function dashboardCleanupByAge() {
+    if (userRole !== 'admin') return;
+
+    const select = document.getElementById('cleanup-project-select');
+    const project = getDlProjects().find(p => p.id === select?.value);
+    if (!project) return;
+
+    const resolved = resolveProjectKeys(project);
+
+    const days = parseInt(document.getElementById('dashboard-age-count-input')?.value) || 30;
+    const cutoffDate = new Date();
+    cutoffDate.setDate(cutoffDate.getDate() - days);
+    const cutoffStr = cutoffDate.toISOString().split('T')[0];
+
+    const toDelete = [];
+    const toKeep = [];
+
+    dashboardCleanupRecords.forEach(r => {
+        const assignedDate = r.assigned || '';
+        if (assignedDate && assignedDate < cutoffStr) {
+            toDelete.push(r);
+        } else {
+            toKeep.push(r);
+        }
+    });
+
+    if (toDelete.length === 0) {
+        await showCustomAlert('Nothing to Clean Up', `There are no records in project ${resolved.name} older than ${days} days (assigned before ${cutoffStr}).`, false);
+        return;
+    }
+
+    const confirmed = await showCustomConfirm(
+        'Confirm Clean Up?',
+        `This will <strong style="color:#ef4444;">move ${toDelete.length} records</strong> of project <strong>${resolved.name}</strong> assigned older than <strong>${days} days</strong> (before ${cutoffStr}) to the Recycle Bin. This cannot be undone.`,
+        true, 'Yes, Move Them', false
+    );
+    if (!confirmed) return;
+
+    const deletedAtStr = new Date().toISOString();
+
+    if (db) {
+        try {
+            const batch = db.batch();
+            toDelete.forEach(r => {
+                if (r.id) {
+                    const trashRecord = { ...r, deletedAt: deletedAtStr };
+                    batch.set(db.collection(resolved.trashCollection).doc(r.id), trashRecord);
+                    batch.delete(db.collection(resolved.firestoreCollection).doc(r.id));
+                }
+            });
+            await batch.commit();
+        } catch(e) {
+            console.error('Batch delete failed:', e);
+        }
+    }
+
+    localStorage.setItem(resolved.localStorageKey, JSON.stringify(toKeep));
+
+    let trashRecords = [];
+    try {
+        const stored = localStorage.getItem(resolved.trashKey);
+        trashRecords = stored ? JSON.parse(stored) : [];
+    } catch(e) {}
+    const newTrash = toDelete.map(r => ({ ...r, deletedAt: deletedAtStr }));
+    trashRecords = [...newTrash, ...trashRecords];
+    localStorage.setItem(resolved.trashKey, JSON.stringify(trashRecords));
+
+    await onCleanupProjectChange();
+
+    await showCustomAlert('Done', `Moved ${toDelete.length} records to the Recycle Bin.`, false);
 }
 
 // ─── Project Registry ─────────────────────────────────────────────────────────
