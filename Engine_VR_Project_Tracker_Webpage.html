@@ -220,22 +220,22 @@ select {
 .filter-container { display: flex; gap: 12px; margin-bottom: 20px; }
 
 /* Tables */
-.table-responsive { overflow-x: auto; -webkit-overflow-scrolling: touch; width: 100%; border-radius: 12px; border: 1px solid var(--border); }
-table { width: 100%; border-collapse: collapse; min-width: 1100px; background: #fff; }
-th { background: var(--dark); color: #fff; padding: 12px 14px; text-align: left; font-size: 0.82rem; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 700; position: sticky; top: 0; z-index: 10; }
-td { padding: 10px 14px; border: 1px solid var(--border); vertical-align: middle; font-size: 0.88rem; color: var(--text-main); }
+.table-responsive { width: 100%; border-radius: 12px; border: 1px solid var(--border); overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; -ms-overflow-style: none; }
+.table-responsive::-webkit-scrollbar { display: none !important; width: 0; height: 0; }
+table { width: 100%; border-collapse: collapse; min-width: 100%; background: #fff; }
+th { background: var(--dark); color: #fff; padding: 11px 12px; text-align: left; font-size: 0.82rem; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 700; position: sticky; top: 0; z-index: 10; white-space: nowrap; }
+td { padding: 10px 12px; border: 1px solid var(--border); vertical-align: middle; font-size: 0.86rem; color: var(--text-main); white-space: nowrap; }
 #summary th, #summary td, details table th, details table td { white-space: nowrap; }
-#summary th:nth-child(7), #summary td:nth-child(7) { white-space: normal; min-width: 280px; width: auto; }
-details table th:nth-child(6), details table td:nth-child(6) { white-space: normal; min-width: 280px; width: auto; }
+#summary th:nth-child(7), #summary td:nth-child(7), details table th:nth-child(6), details table td:nth-child(6) { white-space: normal; min-width: 180px; max-width: 280px; }
 
 table input[type="date"], table input[type="text"], table input[type="url"] {
-    width: 100%; min-width: 120px; padding: 8px 10px;
+    width: 100%; min-width: 0; padding: 6px 8px;
     border: 1.5px solid #e2e8f0; border-radius: 6px;
-    box-sizing: border-box; font-family: inherit; font-size: 0.86rem;
+    box-sizing: border-box; font-family: inherit; font-size: 0.82rem;
     transition: all 0.2s; background: #f8fafc;
 }
 table input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(59,130,246,0.15); outline: none; background: #fff; }
-table select { width: 100%; min-width: 130px; padding: 8px 28px 8px 10px; border: 1.5px solid #e2e8f0; border-radius: 6px; background-color: #f8fafc; color: var(--text-main); font-weight: 600; cursor: pointer; appearance: none; -webkit-appearance: none; background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23555' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e"); background-repeat: no-repeat; background-position: right 10px center; background-size: 12px; font-family: inherit; font-size: 0.86rem; transition: all 0.2s; }
+table select { width: 100%; min-width: 0; padding: 6px 20px 6px 6px; border: 1.5px solid #e2e8f0; border-radius: 6px; background-color: #f8fafc; color: var(--text-main); font-weight: 600; cursor: pointer; appearance: none; -webkit-appearance: none; background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23555' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e"); background-repeat: no-repeat; background-position: right 6px center; background-size: 10px; font-family: inherit; font-size: 0.82rem; transition: all 0.2s; }
 table select:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(59,130,246,0.15); outline: none; background-color: #fff; }
 
 tr:nth-child(even) { background-color: #f8fafc; }
@@ -245,6 +245,7 @@ tr:hover { background-color: #f1f5f9; }
 .status {
     padding: 5px 12px; border-radius: 20px; font-weight: 700; font-size: 0.78rem;
     display: inline-flex; align-items: center; gap: 6px; letter-spacing: 0.2px;
+    white-space: nowrap; flex-shrink: 0;
 }
 .status::before {
     content: ''; display: inline-block; width: 6px; height: 6px; border-radius: 50%;
@@ -484,6 +485,8 @@ tr:hover { background-color: #f1f5f9; }
         min-width: 8px;
         flex-shrink: 1;
     }
+    #add-form-grid-container { display: none; }
+    #form-toggle-icon { transform: rotate(-90deg); }
 }
 @media (max-width: 576px) {
     .stepper-step { width: 32px; height: 32px; font-size: 0.8rem; }
@@ -1262,54 +1265,56 @@ details[open] .accordion-chevron {
 
     <!-- Add Form -->
     <div class="card form-card" id="add-form-card" style="display: none;">
-        <h2>Add New Engine Assignment</h2>
-        <div class="form-grid">
-            
-            <div id="existing-user-div">
-                <select id="existing-user">
-                    <option value="">Select a user...</option>
+        <h2 class="collapsible-header" onclick="toggleFormCard()" style="border-bottom: none; margin-bottom: 0; padding-bottom: 0;">
+            <span>Add New Engine Assignment</span>
+            <span id="form-toggle-icon" style="font-size: 0.9rem; transition: transform 0.2s;">▼</span>
+        </h2>
+        <div id="add-form-grid-container" style="margin-top: 20px; border-top: 2px solid #f1f5f9; padding-top: 15px;">
+            <div class="form-grid">
+                <div id="existing-user-div">
+                    <select id="existing-user">
+                        <option value="">Select a user...</option>
+                    </select>
+                </div>
+
+                <div id="user-display-div" style="display: none; grid-column: 1 / -1; padding: 10px 0; font-weight: bold; color: var(--dark);">
+                    Assigned User: <span id="user-display-name" style="color: var(--primary);"></span>
+                </div>
+                
+                <input id="engine" placeholder="Engine Name">
+                
+                <div class="date-group">
+                    <label>Date Assigned</label>
+                    <input id="assigned" type="date">
+                </div>
+
+                <div class="date-group">
+                    <label>Target Date</label>
+                    <input id="target" type="date">
+                </div>
+
+                <div class="date-group">
+                    <label>Completion Date</label>
+                    <input id="completion" type="date">
+                </div>
+                
+                <select id="status">
+                    <option>Not Started</option>
+                    <option>In Progress</option>
+                    <option>Completed</option>
+                    <option>Not Working</option>
                 </select>
-            </div>
-
-            <div id="user-display-div" style="display: none; grid-column: 1 / -1; padding: 10px 0; font-weight: bold; color: var(--dark);">
-                Assigned User: <span id="user-display-name" style="color: var(--primary);"></span>
-            </div>
-            
-            <input id="engine" placeholder="Engine Name">
-            
-            <div class="date-group">
-                <label>Date Assigned</label>
-                <input id="assigned" type="date">
-            </div>
-
-            <div class="date-group">
-                <label>Target Date</label>
-                <input id="target" type="date">
-            </div>
-
-            <div class="date-group">
-                <label>Completion Date</label>
-                <input id="completion" type="date">
-            </div>
-            
-            <select id="status">
-                <option>Not Started</option>
-                <option>In Progress</option>
-                <option>Completed</option>
-                <option>Not Working</option>
-            </select>
-            
-            <input id="remarks" placeholder="Remarks (Optional)">
-            <input id="drive-url" type="url" placeholder="Drive URL (Optional)" autocomplete="off">
-            
-            <div class="form-actions">
-                <button id="btn-save" class="neumorphic-btn" onclick="saveRecord()">
-                    Add Record
-                </button>
+                
+                <input id="remarks" placeholder="Remarks (Optional)">
+                <input id="drive-url" type="url" placeholder="Drive URL (Optional)" autocomplete="off">
+                
+                <div class="form-actions">
+                    <button id="btn-save" class="neumorphic-btn" onclick="saveRecord()">
+                        Add Record
+                    </button>
+                </div>
             </div>
         </div>
-
-
     </div>
 
     <!-- Search and Filter -->
@@ -1421,6 +1426,20 @@ if (window.location.hostname.includes('vercel.app') && window.location.pathname.
 
 const userRole = sessionStorage.getItem('role') || 'user';
 const userName = sessionStorage.getItem('username') || 'Unknown';
+
+function toggleFormCard() {
+    const grid = document.getElementById("add-form-grid-container");
+    const icon = document.getElementById("form-toggle-icon");
+    if (!grid) return;
+    const isHidden = window.getComputedStyle(grid).display === "none";
+    if (isHidden) {
+        grid.style.display = "block";
+        if (icon) icon.style.transform = "rotate(0deg)";
+    } else {
+        grid.style.display = "none";
+        if (icon) icon.style.transform = "rotate(-90deg)";
+    }
+}
 
 // 1. Firebase Configuration - REPLACE WITH YOUR KEYS
 const firebaseConfig = {

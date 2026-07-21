@@ -444,19 +444,25 @@ button:hover {
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
     width: 100%;
-    padding-bottom: 8px; /* Extra padding to ensure scrollbar is not cut off */
+    scrollbar-width: none;
+    -ms-overflow-style: none;
 }
+.table-responsive::-webkit-scrollbar { display: none; height: 0; }
 
 #summary-table-container {
     border-radius: 12px;
     border: 1px solid var(--border);
     overflow-x: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
 }
+#summary-table-container::-webkit-scrollbar { display: none; height: 0; }
 
 table {
     width: 100%;
     border-collapse: collapse;
-    min-width: 1100px; /* Expanded minimum width to allow breathable layout */
+    min-width: 100%;
+    table-layout: auto;
 }
 
 /* Specific border targeting to fix outer grid lines without double borders against container */
@@ -467,14 +473,18 @@ table {
 th {
     background: var(--dark);
     color: #fff;
-    padding: 12px;
+    padding: 10px;
     text-align: left;
+    font-size: 0.82rem;
+    word-break: normal;
 }
 
 td {
-    padding: 10px;
+    padding: 9px 10px;
     border: 1px solid var(--border);
     vertical-align: middle;
+    font-size: 0.85rem;
+    word-break: normal;
 }
 
 /* Prevent wrapping of short columns to keep them on a single line */
@@ -486,14 +496,14 @@ details table th, details table td {
 /* Allow Remarks column to wrap normally for descriptions */
 #summary th:nth-child(7), #summary td:nth-child(7) {
     white-space: normal;
-    min-width: 280px;
-    width: auto;
+    min-width: 180px;
+    max-width: 280px;
 }
 
 details table th:nth-child(6), details table td:nth-child(6) {
     white-space: normal;
-    min-width: 280px;
-    width: auto;
+    min-width: 180px;
+    max-width: 280px;
 }
 
 /* Inline Edit Inputs formatting */
@@ -501,13 +511,13 @@ table input[type="date"],
 table input[type="text"], 
 table input[type="url"] {
     width: 100%;
-    min-width: 120px;
-    padding: 8px 10px;
+    min-width: 0;
+    padding: 6px 8px;
     border: 1.5px solid #dcdfe6;
     border-radius: 6px;
     box-sizing: border-box;
     font-family: inherit;
-    font-size: 0.9rem;
+    font-size: 0.82rem;
     transition: border-color 0.2s, box-shadow 0.2s;
 }
 
@@ -822,6 +832,8 @@ tr:hover {
         min-width: 8px;
         flex-shrink: 1;
     }
+    #add-form-grid-container { display: none; }
+    #form-toggle-icon { transform: rotate(-90deg); }
 }
 @media (max-width: 576px) {
     .stepper-step { width: 32px; height: 32px; font-size: 0.8rem; }
@@ -1494,49 +1506,53 @@ details[open] .accordion-chevron {
 
     <!-- Add Form -->
     <div class="card form-card" id="add-form-card" style="display: none;">
-        <h2>Add New Engine Assignment</h2>
-        <div class="form-grid">
-            
-            <div id="existing-user-div">
-                <select id="existing-user">
-                    <option value="">Select a user...</option>
+        <h2 class="collapsible-header" onclick="toggleFormCard()" style="border-bottom: none; margin-bottom: 0; padding-bottom: 0;">
+            <span>Add New Engine Assignment</span>
+            <span id="form-toggle-icon" style="font-size: 0.9rem; transition: transform 0.2s;">▼</span>
+        </h2>
+        <div id="add-form-grid-container" style="margin-top: 20px; border-top: 2px solid #f1f5f9; padding-top: 15px;">
+            <div class="form-grid">
+                <div id="existing-user-div">
+                    <select id="existing-user">
+                        <option value="">Select a user...</option>
+                    </select>
+                </div>
+
+                <div id="user-display-div" style="display: none; grid-column: 1 / -1; padding: 10px 0; font-weight: bold; color: var(--dark);">
+                    Assigned User: <span id="user-display-name" style="color: var(--primary);"></span>
+                </div>
+                
+                <input id="engine" placeholder="Engine Name">
+                
+                <div class="date-group">
+                    <label>Date Assigned</label>
+                    <input id="assigned" type="date">
+                </div>
+
+                <div class="date-group">
+                    <label>Target Date</label>
+                    <input id="target" type="date">
+                </div>
+
+                <div class="date-group">
+                    <label>Completion Date</label>
+                    <input id="completion" type="date">
+                </div>
+                
+                <select id="status">
+                    <option>Not Started</option>
+                    <option>In Progress</option>
+                    <option>Completed</option>
                 </select>
-            </div>
-
-            <div id="user-display-div" style="display: none; grid-column: 1 / -1; padding: 10px 0; font-weight: bold; color: var(--dark);">
-                Assigned User: <span id="user-display-name" style="color: var(--primary);"></span>
-            </div>
-            
-            <input id="engine" placeholder="Engine Name">
-            
-            <div class="date-group">
-                <label>Date Assigned</label>
-                <input id="assigned" type="date">
-            </div>
-
-            <div class="date-group">
-                <label>Target Date</label>
-                <input id="target" type="date">
-            </div>
-
-            <div class="date-group">
-                <label>Completion Date</label>
-                <input id="completion" type="date">
-            </div>
-            
-            <select id="status">
-                <option>Not Started</option>
-                <option>In Progress</option>
-                <option>Completed</option>
-            </select>
-            
-            <input id="remarks" placeholder="Remarks (Optional)">
-            <input id="drive-url" type="url" placeholder="Drive URL (Optional)" autocomplete="off">
-            
-            <div class="form-actions">
-                <button id="btn-save" class="neumorphic-btn" onclick="saveRecord()">
-                    Add Record
-                </button>
+                
+                <input id="remarks" placeholder="Remarks (Optional)">
+                <input id="drive-url" type="url" placeholder="Drive URL (Optional)" autocomplete="off">
+                
+                <div class="form-actions">
+                    <button id="btn-save" class="neumorphic-btn" onclick="saveRecord()">
+                        Add Record
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -1650,6 +1666,20 @@ if (sessionStorage.getItem('loggedIn') !== 'true') {
 
 const userRole = sessionStorage.getItem('role') || 'user';
 const userName = sessionStorage.getItem('username') || 'Unknown';
+
+function toggleFormCard() {
+    const grid = document.getElementById("add-form-grid-container");
+    const icon = document.getElementById("form-toggle-icon");
+    if (!grid) return;
+    const isHidden = window.getComputedStyle(grid).display === "none";
+    if (isHidden) {
+        grid.style.display = "block";
+        if (icon) icon.style.transform = "rotate(0deg)";
+    } else {
+        grid.style.display = "none";
+        if (icon) icon.style.transform = "rotate(-90deg)";
+    }
+}
 
 // 1. Firebase Configuration - REPLACE WITH YOUR KEYS
 const firebaseConfig = {
