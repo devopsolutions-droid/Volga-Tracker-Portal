@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Volga Infosys - Project Dashboard</title>
 <link rel="icon" href="favicon.png" type="image/png">
+<!-- Google Fonts: Plus Jakarta Sans -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
@@ -29,7 +33,7 @@
 
 body {
     margin: 0; padding: 0;
-    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    font-family: 'Plus Jakarta Sans', 'Segoe UI', system-ui, -apple-system, sans-serif;
     background: var(--page-bg);
     color: var(--text-main);
     min-height: 100vh;
@@ -237,6 +241,22 @@ body {
 .mini-stat-val {
     font-size: 1.55rem; font-weight: 800;
     color: var(--card-accent, #3b82f6); line-height: 1.1;
+}
+
+/* Card visual progress bar */
+.card-progress-wrap {
+    padding: 0 20px 14px 20px;
+}
+.card-progress-header {
+    display: flex; justify-content: space-between; align-items: center;
+    font-size: 0.72rem; font-weight: 700; color: #64748b; margin-bottom: 6px;
+}
+.card-progress-track {
+    height: 6px; background: #e2e8f0; border-radius: 99px; overflow: hidden;
+}
+.card-progress-bar {
+    height: 100%; background: var(--card-accent, #3b82f6); border-radius: 99px;
+    transition: width 0.6s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 /* Delete button on dynamic cards */

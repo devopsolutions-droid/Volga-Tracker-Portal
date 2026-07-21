@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Volga Infosys - Project Tracker</title>
 <link rel="icon" href="favicon.png" type="image/png">
+<!-- Google Fonts: Plus Jakarta Sans -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <!-- Firebase App and Firestore Compatibility SDKs -->
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
@@ -27,7 +31,7 @@
 }
 
 body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-family: 'Plus Jakarta Sans', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     background: var(--light-bg);
     margin: 0;
     padding: 20px;
@@ -780,15 +784,48 @@ tr:hover {
 
 @media (max-width: 768px) {
     .pagination-stepper-container {
-        flex-direction: column;
-        gap: 15px;
-        padding: 12px 16px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 12px 14px;
+    }
+    .pagination-stepper-container > .stepper-btn {
+        display: none !important;
     }
     .stepper-steps-wrapper {
         margin: 0;
         width: 100%;
         max-width: 100%;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        padding: 4px 6px;
+        display: flex;
+        justify-content: center;
+        scrollbar-width: none;
     }
+    .stepper-steps-wrapper::-webkit-scrollbar { display: none; }
+    .stepper-steps {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-width: max-content;
+        margin: 0 auto;
+    }
+    .stepper-step {
+        width: 34px;
+        height: 34px;
+        font-size: 0.84rem;
+        flex-shrink: 0;
+    }
+    .stepper-line {
+        width: 18px;
+        min-width: 8px;
+        flex-shrink: 1;
+    }
+}
+@media (max-width: 576px) {
+    .stepper-step { width: 32px; height: 32px; font-size: 0.8rem; }
+    .stepper-line { width: 14px; min-width: 6px; }
 }
 
 
@@ -1537,8 +1574,8 @@ details[open] .accordion-chevron {
                 </thead>
                 <tbody></tbody>
             </table>
-            <div id="pagination-controls" class="pagination-stepper-container"></div>
         </div>
+        <div id="pagination-controls" class="pagination-stepper-container"></div>
     </div>
 
     <!-- User Wise Tracking -->
@@ -2430,7 +2467,7 @@ function renderPagination(totalItems) {
         } else if (currentPage >= totalPages - 3) {
             steps.push(1, '...', totalPages - 4, totalPages - 3, totalPages - 2, totalPages - 1, totalPages);
         } else {
-            steps.push(1, '...', currentPage - 1, currentPage, currentPage + 1, '...', totalPages);
+            steps.push(1, currentPage - 2, currentPage - 1, currentPage, currentPage + 1, '...', totalPages);
         }
     }
 

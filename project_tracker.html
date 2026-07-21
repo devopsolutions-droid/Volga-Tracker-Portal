@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Volga Infosys - Project Tracker</title>
 <link rel="icon" href="favicon.png" type="image/png">
+<!-- Google Fonts: Plus Jakarta Sans -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <!-- Firebase App and Firestore Compatibility SDKs -->
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
@@ -33,7 +37,7 @@
 }
 
 body {
-    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    font-family: 'Plus Jakarta Sans', 'Segoe UI', system-ui, -apple-system, sans-serif;
     background: var(--page-bg);
     margin: 0;
     padding: 20px 28px 48px;
@@ -119,11 +123,13 @@ body {
     background: #fff; border-radius: 14px; padding: 18px 22px;
     position: relative; overflow: hidden;
     box-shadow: var(--shadow-sm); border: 1px solid var(--border);
-    transition: transform 0.22s, box-shadow 0.22s;
+    transition: transform 0.22s, box-shadow 0.22s, border-color 0.22s;
     display: flex; flex-direction: row;
     align-items: center; justify-content: space-between;
+    cursor: pointer; user-select: none;
 }
-.stat-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); }
+.stat-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-md); }
+.stat-card.active-filter { outline: 2px solid var(--primary); outline-offset: -2px; box-shadow: 0 0 0 4px rgba(59,130,246,0.2); }
 .stat-header { display: flex; align-items: center; gap: 12px; z-index: 2; }
 .stat-icon-wrapper { width: 38px; height: 38px; border-radius: 10px; display: flex; align-items: center; justify-content: center; }
 .stat-icon-wrapper svg { width: 20px; height: 20px; }
@@ -196,7 +202,7 @@ select {
 /* Tables */
 .table-responsive { overflow-x: auto; -webkit-overflow-scrolling: touch; width: 100%; border-radius: 12px; border: 1px solid var(--border); }
 table { width: 100%; border-collapse: collapse; min-width: 1100px; background: #fff; }
-th { background: var(--dark); color: #fff; padding: 12px 14px; text-align: left; font-size: 0.82rem; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 700; }
+th { background: var(--dark); color: #fff; padding: 12px 14px; text-align: left; font-size: 0.82rem; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 700; position: sticky; top: 0; z-index: 10; }
 td { padding: 10px 14px; border: 1px solid var(--border); vertical-align: middle; font-size: 0.88rem; color: var(--text-main); }
 #summary th, #summary td, details table th, details table td { white-space: nowrap; }
 #summary th:nth-child(7), #summary td:nth-child(7) { white-space: normal; min-width: 280px; width: auto; }
@@ -216,7 +222,14 @@ tr:nth-child(even) { background-color: #f8fafc; }
 tr:hover { background-color: #f1f5f9; }
 
 /* Status Badges */
-.status { padding: 5px 12px; border-radius: 20px; font-weight: 700; font-size: 0.78rem; display: inline-block; text-align: center; }
+.status {
+    padding: 5px 12px; border-radius: 20px; font-weight: 700; font-size: 0.78rem;
+    display: inline-flex; align-items: center; gap: 6px; letter-spacing: 0.2px;
+}
+.status::before {
+    content: ''; display: inline-block; width: 6px; height: 6px; border-radius: 50%;
+    background-color: currentColor; flex-shrink: 0;
+}
 .completed { background: var(--c-completed); color: var(--t-completed); }
 .progress { background: var(--c-progress); color: var(--t-progress); }
 .notstarted { background: var(--c-notstarted); color: var(--t-notstarted); }
@@ -361,8 +374,45 @@ details[open] .accordion-chevron { transform: rotate(180deg); }
     .brand-text { font-size: 1.35rem; display: flex; flex-direction: column; align-items: center; gap: 4px; }
     .dashboard { grid-template-columns: repeat(2, 1fr); gap: 12px; }
     .form-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
-    .pagination-stepper-container { flex-direction: column; gap: 15px; padding: 12px 16px; }
-    .stepper-steps-wrapper { margin: 0; width: 100%; max-width: 100%; }
+    .pagination-stepper-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 12px 14px;
+    }
+    .pagination-stepper-container > .stepper-btn {
+        display: none !important;
+    }
+    .stepper-steps-wrapper {
+        margin: 0;
+        width: 100%;
+        max-width: 100%;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        padding: 4px 6px;
+        display: flex;
+        justify-content: center;
+        scrollbar-width: none;
+    }
+    .stepper-steps-wrapper::-webkit-scrollbar { display: none; }
+    .stepper-steps {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-width: max-content;
+        margin: 0 auto;
+    }
+    .stepper-step {
+        width: 34px;
+        height: 34px;
+        font-size: 0.84rem;
+        flex-shrink: 0;
+    }
+    .stepper-line {
+        width: 18px;
+        min-width: 8px;
+        flex-shrink: 1;
+    }
     .table-responsive::-webkit-scrollbar { display: none; }
     .table-responsive { -ms-overflow-style: none; scrollbar-width: none; }
 }
@@ -375,6 +425,8 @@ details[open] .accordion-chevron { transform: rotate(180deg); }
     .form-grid { grid-template-columns: 1fr; gap: 12px; }
     .filter-container { flex-direction: column; gap: 10px; }
     .conflict-grid { grid-template-columns: 1fr; }
+    .stepper-step { width: 32px; height: 32px; font-size: 0.8rem; }
+    .stepper-line { width: 14px; min-width: 6px; }
 }
 
 /* Page Loader */
@@ -512,7 +564,7 @@ details[open] .accordion-chevron { transform: rotate(180deg); }
 
     <!-- Dashboard Stats -->
     <div class="dashboard">
-        <div class="stat-card total">
+        <div class="stat-card total" onclick="filterByStatCard('all')" title="Click to show all items">
             <div class="stat-header">
                 <div class="stat-icon-wrapper"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg></div>
                 <div class="stat-title" id="stat-total-label">Total Items</div>
@@ -520,7 +572,7 @@ details[open] .accordion-chevron { transform: rotate(180deg); }
             <div class="stat-value" id="stat-total">0</div>
             <div class="stat-decoration"></div>
         </div>
-        <div class="stat-card completed">
+        <div class="stat-card completed" onclick="filterByStatCard('Completed')" title="Click to filter Completed items">
             <div class="stat-header">
                 <div class="stat-icon-wrapper"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg></div>
                 <div class="stat-title">Completed</div>
@@ -528,7 +580,7 @@ details[open] .accordion-chevron { transform: rotate(180deg); }
             <div class="stat-value" id="stat-completed">0</div>
             <div class="stat-decoration"></div>
         </div>
-        <div class="stat-card progress">
+        <div class="stat-card progress" onclick="filterByStatCard('In Progress')" title="Click to filter In Progress items">
             <div class="stat-header">
                 <div class="stat-icon-wrapper"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg></div>
                 <div class="stat-title">In Progress</div>
@@ -536,7 +588,7 @@ details[open] .accordion-chevron { transform: rotate(180deg); }
             <div class="stat-value" id="stat-progress">0</div>
             <div class="stat-decoration"></div>
         </div>
-        <div class="stat-card notstarted">
+        <div class="stat-card notstarted" onclick="filterByStatCard('Not Started')" title="Click to filter Not Started items">
             <div class="stat-header">
                 <div class="stat-icon-wrapper"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polygon points="10 8 16 12 10 16 10 8"></polygon></svg></div>
                 <div class="stat-title">Not Started</div>
@@ -544,7 +596,7 @@ details[open] .accordion-chevron { transform: rotate(180deg); }
             <div class="stat-value" id="stat-notstarted">0</div>
             <div class="stat-decoration"></div>
         </div>
-        <div class="stat-card notworking">
+        <div class="stat-card notworking" onclick="filterByStatCard('Not Working')" title="Click to filter Not Working items">
             <div class="stat-header">
                 <div class="stat-icon-wrapper"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"></line></svg></div>
                 <div class="stat-title">Not Working</div>
@@ -635,8 +687,8 @@ details[open] .accordion-chevron { transform: rotate(180deg); }
                 </thead>
                 <tbody></tbody>
             </table>
-            <div id="pagination-controls" class="pagination-stepper-container"></div>
         </div>
+        <div id="pagination-controls" class="pagination-stepper-container"></div>
     </div>
 
     <!-- User Wise Tracking -->
@@ -752,6 +804,14 @@ if (firebaseConfig.apiKey !== "YOUR_API_KEY") {
         firebase.initializeApp(firebaseConfig);
         db = firebase.firestore();
     } catch (e) { console.error("Firebase initialization failed:", e); }
+}
+
+function filterByStatCard(statusVal) {
+    const filterSelect = document.getElementById('filter-status');
+    if (filterSelect) {
+        filterSelect.value = statusVal === 'all' ? 'All' : statusVal;
+        render();
+    }
 }
 
 // ─── Project Config (loaded from registry) ──────────────────────────────────
@@ -1288,7 +1348,7 @@ function renderPagination(totalItems) {
     if (totalPages <= 6) { for (let i = 1; i <= totalPages; i++) steps.push(i); }
     else if (currentPage <= 4) steps.push(1, 2, 3, 4, 5, '...', totalPages);
     else if (currentPage >= totalPages - 3) steps.push(1, '...', totalPages - 4, totalPages - 3, totalPages - 2, totalPages - 1, totalPages);
-    else steps.push(1, '...', currentPage - 1, currentPage, currentPage + 1, '...', totalPages);
+    else steps.push(1, currentPage - 2, currentPage - 1, currentPage, currentPage + 1, '...', totalPages);
 
     for (let idx = 0; idx < steps.length; idx++) {
         const step = steps[idx];
