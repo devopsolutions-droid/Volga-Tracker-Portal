@@ -256,6 +256,63 @@ tr:hover { background-color: #f1f5f9; }
 .notstarted { background: var(--c-notstarted); color: var(--t-notstarted); }
 .notworking { background: var(--c-notworking); color: var(--t-notworking); }
 
+/* Dynamic Status Select Control */
+.status-select {
+    padding: 5px 28px 5px 12px;
+    border-radius: 20px;
+    font-weight: 700;
+    font-size: 0.78rem;
+    font-family: inherit;
+    outline: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: 1.5px solid transparent;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23334155' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 8px center;
+    background-size: 11px;
+}
+
+.status-select-notstarted {
+    background-color: var(--c-notstarted, #fef3c7) !important;
+    color: var(--t-notstarted, #92400e) !important;
+    border-color: #fcd34d !important;
+}
+
+.status-select-progress {
+    background-color: var(--c-progress, #dbeafe) !important;
+    color: var(--t-progress, #1e40af) !important;
+    border-color: #93c5fd !important;
+}
+
+.status-select-completed {
+    background-color: var(--c-completed, #d1fae5) !important;
+    color: var(--t-completed, #065f46) !important;
+    border-color: #6ee7b7 !important;
+}
+
+.status-select-notworking {
+    background-color: var(--c-notworking, #fee2e2) !important;
+    color: var(--t-notworking, #991b1b) !important;
+    border-color: #fca5a5 !important;
+}
+
+.status-select option {
+    font-weight: 600;
+    padding: 8px 12px;
+    background-color: #ffffff;
+    color: var(--text-main, #334155);
+}
+
+.status-select option[value="Not Started"] { background-color: #fffbeb; color: #92400e; }
+.status-select option[value="In Progress"] { background-color: #eff6ff; color: #1e40af; }
+.status-select option[value="Completed"] { background-color: #ecfdf5; color: #065f46; }
+.status-select option[value="Not Working"] { background-color: #fef2f2; color: #991b1b; }
+
+
     background: transparent;
     outline: none;
 }
@@ -1298,11 +1355,11 @@ details[open] .accordion-chevron {
                     <input id="completion" type="date">
                 </div>
                 
-                <select id="status">
-                    <option>Not Started</option>
-                    <option>In Progress</option>
-                    <option>Completed</option>
-                    <option>Not Working</option>
+                <select id="status" class="status-select status-select-notstarted" onchange="updateSelectStatusStyle(this)">
+                    <option value="Not Started">Not Started</option>
+                    <option value="In Progress">In Progress</option>
+                    <option value="Completed">Completed</option>
+                    <option value="Not Working">Not Working</option>
                 </select>
                 
                 <input id="remarks" placeholder="Remarks (Optional)">
@@ -1321,12 +1378,12 @@ details[open] .accordion-chevron {
     <div class="card">
         <div class="filter-container">
             <input id="search-input" placeholder="Search by User or Engine..." oninput="render()">
-            <select id="filter-status" onchange="render()">
+            <select id="filter-status" class="status-select" onchange="updateSelectStatusStyle(this); render();">
                 <option value="All">All Statuses</option>
-                <option>Not Started</option>
-                <option>In Progress</option>
-                <option>Completed</option>
-                <option>Not Working</option>
+                <option value="Not Started">Not Started</option>
+                <option value="In Progress">In Progress</option>
+                <option value="Completed">Completed</option>
+                <option value="Not Working">Not Working</option>
             </select>
         </div>
 
@@ -1936,6 +1993,25 @@ function statusClass(s) {
     return "notstarted";
 }
 
+function statusSelectClass(s) {
+    if(s === "Completed")   return "status-select-completed";
+    if(s === "In Progress") return "status-select-progress";
+    if(s === "Not Working") return "status-select-notworking";
+    return "status-select-notstarted";
+}
+
+function updateSelectStatusStyle(selectEl) {
+    if (!selectEl) return;
+    const val = selectEl.value;
+    selectEl.classList.remove('status-select-notstarted', 'status-select-progress', 'status-select-completed', 'status-select-notworking');
+    selectEl.classList.add('status-select');
+    if (val === 'Completed') selectEl.classList.add('status-select-completed');
+    else if (val === 'In Progress') selectEl.classList.add('status-select-progress');
+    else if (val === 'Not Working') selectEl.classList.add('status-select-notworking');
+    else if (val === 'Not Started') selectEl.classList.add('status-select-notstarted');
+}
+
+
 // Update Dashboard Statistics
 function updateDashboard(filteredData) {
     document.getElementById('stat-total').innerText = filteredData.length;
@@ -2020,11 +2096,11 @@ function render() {
                     <td><input type="date" id="inline-target-${d.id}" value="${d.target}" ${userRole === 'admin' ? '' : 'disabled'}></td>
                     <td><input type="date" id="inline-completion-${d.id}" value="${d.completion}"></td>
                     <td>
-                        <select id="inline-status-${d.id}">
-                            <option ${d.status === 'Not Started' ? 'selected' : ''}>Not Started</option>
-                            <option ${d.status === 'In Progress' ? 'selected' : ''}>In Progress</option>
-                            <option ${d.status === 'Completed' ? 'selected' : ''}>Completed</option>
-                            <option ${d.status === 'Not Working' ? 'selected' : ''}>Not Working</option>
+                        <select id="inline-status-${d.id}" class="status-select ${statusSelectClass(d.status)}" onchange="updateSelectStatusStyle(this)">
+                            <option value="Not Started" ${d.status === 'Not Started' ? 'selected' : ''}>Not Started</option>
+                            <option value="In Progress" ${d.status === 'In Progress' ? 'selected' : ''}>In Progress</option>
+                            <option value="Completed" ${d.status === 'Completed' ? 'selected' : ''}>Completed</option>
+                            <option value="Not Working" ${d.status === 'Not Working' ? 'selected' : ''}>Not Working</option>
                         </select>
                     </td>
                     <td><input type="text" id="inline-remarks-${d.id}" value="${d.remarks || ""}"></td>
