@@ -1636,8 +1636,18 @@
     function updateGlobalUnreadBadge() {
         let totalUnread = 0;
         Object.keys(chatMetadata).forEach(cId => {
-            const unread = chatMetadata[cId]?.unreadCount?.[currentUserId] || 0;
-            totalUnread += unread;
+            const meta = chatMetadata[cId];
+            if (meta) {
+                // Safeguard: skip orphaned direct chats where target user is deleted/not in usersList
+                if (!meta.isGroup) {
+                    const otherId = meta.participants?.find(pId => pId !== currentUserId);
+                    if (otherId && otherId !== 'adminvolga' && !usersList.some(u => u.id === otherId)) {
+                        return;
+                    }
+                }
+                const unread = meta.unreadCount?.[currentUserId] || 0;
+                totalUnread += unread;
+            }
         });
 
         const badge = document.getElementById('volga-chat-unread-badge');
@@ -1661,6 +1671,13 @@
         Object.keys(chatMetadata).forEach(cId => {
             const meta = chatMetadata[cId];
             if (meta) {
+                // Safeguard: skip orphaned direct chats where target user is deleted/not in usersList
+                if (!meta.isGroup) {
+                    const otherId = meta.participants?.find(pId => pId !== currentUserId);
+                    if (otherId && otherId !== 'adminvolga' && !usersList.some(u => u.id === otherId)) {
+                        return;
+                    }
+                }
                 const unread = meta.unreadCount?.[currentUserId] || 0;
                 if (meta.isGroup) {
                     groupsUnread += unread;
@@ -2630,13 +2647,11 @@
 
         if (activeDb) {
             try {
-                // 1. Save document
                 const chatRef = activeDb.collection('chats').doc(chatId);
                 const msgRef = chatRef.collection('messages').doc();
                 msgPayload.timestamp = firebase.firestore.FieldValue.serverTimestamp();
-                await msgRef.set(msgPayload);
 
-                // 2. Update metadata
+                // 1. Fetch metadata doc first
                 const doc = await chatRef.get();
                 let currentUnreads = {};
                 let participants = [currentUserId, activeChatUserId];
@@ -2670,7 +2685,11 @@
                     updatePayload.name = groupName;
                 }
 
-                await chatRef.set(updatePayload, { merge: true });
+                // 2. Perform both writes atomically using a WriteBatch
+                const batch = activeDb.batch();
+                batch.set(msgRef, msgPayload);
+                batch.set(chatRef, updatePayload, { merge: true });
+                await batch.commit();
             } catch(e) {
                 console.error("Firestore attachment send failed:", e);
             }
@@ -2722,18 +2741,10 @@
 
         if (activeDb) {
             try {
-                // 1. Add message document
                 const chatRef = activeDb.collection('chats').doc(chatId);
                 const msgRef = chatRef.collection('messages').doc();
-                
-                await msgRef.set({
-                    senderId: currentUserId,
-                    senderName: currentUserDisplayName,
-                    text: text,
-                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
-                });
 
-                // 2. Update chat session metadata
+                // 1. Fetch metadata doc first
                 const doc = await chatRef.get();
                 let currentUnreads = {};
                 let participants = [currentUserId, activeChatUserId];
@@ -2768,7 +2779,16 @@
                     updatePayload.name = groupName;
                 }
 
-                await chatRef.set(updatePayload, { merge: true });
+                // 2. Perform both writes atomically using a WriteBatch
+                const batch = activeDb.batch();
+                batch.set(msgRef, {
+                    senderId: currentUserId,
+                    senderName: currentUserDisplayName,
+                    text: text,
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                batch.set(chatRef, updatePayload, { merge: true });
+                await batch.commit();
 
             } catch (e) {
                 console.error("Firestore message send failed:", e);
