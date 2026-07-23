@@ -2114,6 +2114,8 @@ footer {
     </div>
 </div>
 
+
+
 <!-- ── Projects Grid ─────────────────────────────────────────────────────── -->
 <div class="projects-grid">
 
@@ -4290,6 +4292,8 @@ function renderDynamicProjects() {
     }
 }
 
+
+
 function showCustomConfirm(title, message, isDanger = true, okText = null, bannerText = null) {
     return new Promise((resolve) => {
         const modal    = document.getElementById('custom-confirm-modal');
@@ -4361,6 +4365,69 @@ function showCustomConfirm(title, message, isDanger = true, okText = null, banne
 
         okBtn.onclick    = () => { cleanup(); resolve(true);  };
         cancelBtn.onclick = () => { cleanup(); resolve(false); };
+    });
+}
+
+function showCustomAlert(title, message, isDanger = true) {
+    return new Promise((resolve) => {
+        const modal = document.getElementById('custom-confirm-modal');
+        const titleEl = document.getElementById('confirm-title');
+        const msgEl = document.getElementById('confirm-message');
+        const okBtn = document.getElementById('confirm-ok-btn');
+        const cancelBtn = document.getElementById('confirm-cancel-btn');
+        const iconEl = document.querySelector('.modal-icon');
+
+        titleEl.innerText = title;
+        cancelBtn.style.display = 'none'; // Hide cancel button for alerts
+
+        msgEl.innerHTML = `
+            <div style="font-size: 0.95rem; color: #4b5563; line-height: 1.5;">
+                ${message}
+            </div>
+        `;
+
+        if (isDanger) {
+            okBtn.className = "modal-btn btn-danger";
+            okBtn.innerText = "OK";
+            okBtn.style.background = "#dc3545";
+            okBtn.style.color = "#ffffff";
+            iconEl.style.background = "rgba(220, 53, 69, 0.1)";
+            iconEl.style.color = "#dc3545";
+            iconEl.innerHTML = `
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+                    <line x1="12" y1="9" x2="12" y2="13"></line>
+                    <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                </svg>
+            `;
+        } else {
+            okBtn.className = "modal-btn";
+            okBtn.style.background = "var(--primary)";
+            okBtn.style.color = "#ffffff";
+            okBtn.innerText = "OK";
+            iconEl.style.background = "rgba(59, 130, 246, 0.1)";
+            iconEl.style.color = "var(--primary)";
+            iconEl.innerHTML = `
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="12" y1="16" x2="12" y2="12"></line>
+                    <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                </svg>
+            `;
+        }
+
+        modal.style.display = 'flex';
+
+        function cleanup() {
+            modal.style.display = 'none';
+            cancelBtn.style.display = ''; // Restore default display
+            okBtn.onclick = null;
+        }
+
+        okBtn.onclick = () => {
+            cleanup();
+            resolve();
+        };
     });
 }
 
@@ -4701,7 +4768,7 @@ function pdfTaskTable(records, accentColor, includeProject){
         const cells=includeProject
             ?[i+1,r._projectName||'',taskName(r)||'—',r.user||'—',stCell,fmtDate(r.target)||'—',fmtDate(r.completion)||'—']
             :[i+1,taskName(r)||'—',r.user||'—',stCell,fmtDate(r.assigned)||'—',fmtDate(r.target)||'—',fmtDate(r.completion)||'—',taskRemarks(r)||''];
-        return `<tr style="background:${bg};">${cells.map((c,ci)=>`<td style="${tdS}${ci===0?'color:#94a3b8;font-weight:700;width:28px;':''}">${c}</td>`).join('')}</tr>`;
+        return `<tr style="background:${bg}; page-break-inside: avoid; break-inside: avoid;">${cells.map((c,ci)=>`<td style="${tdS}${ci===0?'color:#94a3b8;font-weight:700;width:28px;':''}">${c}</td>`).join('')}</tr>`;
     }).join('');
     const empty=`<tr><td colspan="${cols.length}" style="padding:20px;text-align:center;color:#94a3b8;font-size:12px;">No tasks found.</td></tr>`;
     return `<table style="width:100%;border-collapse:collapse;font-family:'Segoe UI',sans-serif;">
@@ -4714,13 +4781,14 @@ function triggerPDF(htmlContent, filename){
         filename:    filename,
         image:       { type:'jpeg', quality:0.98 },
         html2canvas: { scale:2, useCORS:true, logging:false, allowTaint:true, scrollX:0, scrollY:0 },
-        jsPDF:       { unit:'mm', format:'a4', orientation:'landscape' }
+        jsPDF:       { unit:'mm', format:'a4', orientation:'landscape' },
+        pagebreak:   { mode: ['avoid-all', 'css', 'legacy'] }
     };
     // Render in a visible but transparent overlay so html2canvas captures real pixels
     const wrapper = document.createElement('div');
-    wrapper.style.cssText = 'position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:99999;overflow:auto;background:#fff;opacity:0;pointer-events:none;';
+    wrapper.style.cssText = 'position:absolute;top:0;left:0;width:277mm;z-index:-99999;background:#fff;opacity:0;pointer-events:none;';
     const el = document.createElement('div');
-    el.style.cssText = 'width:257mm;background:#fff;font-family:"Segoe UI",Tahoma,sans-serif;padding:18px;box-sizing:border-box;';
+    el.style.cssText = 'width:257mm;background:#fff;font-family:"Segoe UI",Tahoma,sans-serif;padding:18px;box-sizing:border-box;overflow:visible;';
     el.innerHTML = htmlContent;
     wrapper.appendChild(el);
     document.body.appendChild(wrapper);
@@ -4734,180 +4802,614 @@ function triggerPDF(htmlContent, filename){
     });
 }
 
-// ─── PDF Download Functions ───────────────────────────────────────────────────
-async function downloadSingleProjectPDF(id){
-    const project=getDlProjects().find(p=>p.id===id);
-    if(!project) return;
-    const records=await getDlRecordsAsync(project);
-    const total=records.length;
-    const done=records.filter(r=>r.status==='Completed').length;
-    const prog=records.filter(r=>r.status==='In Progress').length;
-    const ns=records.filter(r=>r.status==='Not Started').length;
-    const pct=total?Math.round(done/total*100):0;
-    const color=project.color||'#3b82f6';
-    const now=new Date().toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});
-    const userCounts={};
-    records.forEach(r=>{if(r.user) userCounts[r.user]=(userCounts[r.user]||0)+1;});
-    const html=`${pdfHeader(project.name+' Tracker','Project Summary Report',now)}
-        <div style="display:grid;grid-template-columns:1fr 196px;gap:18px;margin-bottom:18px;align-items:start;">
-            <div>
-                ${pdfStatCards([{label:'Total Tasks',val:total,bg:'#f8fafc',border:'#e2e8f0',fg:'#1e293b'},{label:'Completed',val:done,bg:'#d1fae5',border:'#a7f3d0',fg:'#065f46'},{label:'In Progress',val:prog,bg:'#dbeafe',border:'#bfdbfe',fg:'#1e40af'},{label:'Not Started',val:ns,bg:'#fef3c7',border:'#fde68a',fg:'#92400e'}])}
-                <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:14px;margin-bottom:14px;">
-                    <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:#94a3b8;margin-bottom:10px;">Team Workload</div>
-                    ${pdfBarChart(userCounts,color)}
-                </div>
-            </div>
-            <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:14px;text-align:center;">
-                <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:#94a3b8;margin-bottom:8px;">Completion Rate</div>
-                ${pdfDonut(pct,color)}
-                <div style="margin-top:8px;font-size:10px;color:#64748b;line-height:1.8;">
-                    <div><span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#10b981;margin-right:4px;"></span>Completed</div>
-                    <div><span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#3b82f6;margin-right:4px;"></span>In Progress</div>
-                    <div><span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#f59e0b;margin-right:4px;"></span>Not Started</div>
-                </div>
-            </div>
-        </div>
-        <div style="background:#fff;border:1px solid #e2e8f0;border-radius:10px;overflow:hidden;">
-            <div style="background:${color};padding:10px 14px;"><span style="font-size:12px;font-weight:700;color:#fff;">Task Details</span></div>
-            ${pdfTaskTable(records,color,false)}
-        </div>
-        <div style="margin-top:16px;padding-top:10px;border-top:1px solid #e2e8f0;font-size:9px;color:#94a3b8;display:flex;justify-content:space-between;">
-            <span>Volga Infosys Private Limited &mdash; Confidential</span><span>Generated: ${now} by ${userName}</span>
-        </div>`;
-    triggerPDF(html,`${project.id}-summary.pdf`);
-    showCustomAlert('Generating PDF',`${project.name} PDF is being prepared&hellip;`,false);
-}
+// ═══════════════════════════════════════════════════════════════════════════════
+        // ENHANCED ANALYTICS ENGINE
+        // ═══════════════════════════════════════════════════════════════════════════════
 
-async function downloadSingleUserPDF(userId){
-    const user=authUsers.find(u=>u.id===userId);
-    if(!user) return;
-    const displayName=user.displayName||user.id;
-    const projects=getDlProjects();
-    const allRecords=[];
-    const projCounts={};
-    for(const p of projects){
-        const recs=await getDlRecordsAsync(p);
-        const mine=recs.filter(r=>r.user===displayName);
-        mine.forEach(r=>allRecords.push({...r,_projectName:p.name}));
-        if(mine.length) projCounts[p.name]=mine.length;
-    }
-    const total=allRecords.length;
-    const done=allRecords.filter(r=>r.status==='Completed').length;
-    const prog=allRecords.filter(r=>r.status==='In Progress').length;
-    const ns=allRecords.filter(r=>r.status==='Not Started').length;
-    const pct=total?Math.round(done/total*100):0;
-    const now=new Date().toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});
-    const roleBadge=`<span style="display:inline-block;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:700;background:rgba(59,130,246,0.1);color:#1d4ed8;">${user.role||'user'}</span>`;
-    const html=`${pdfHeader(displayName,`Personal Task Summary &nbsp;${roleBadge}`,now)}
-        <div style="display:grid;grid-template-columns:1fr 196px;gap:18px;margin-bottom:18px;align-items:start;">
-            <div>
-                ${pdfStatCards([{label:'Total Assigned',val:total,bg:'#f8fafc',border:'#e2e8f0',fg:'#1e293b'},{label:'Completed',val:done,bg:'#d1fae5',border:'#a7f3d0',fg:'#065f46'},{label:'In Progress',val:prog,bg:'#dbeafe',border:'#bfdbfe',fg:'#1e40af'},{label:'Not Started',val:ns,bg:'#fef3c7',border:'#fde68a',fg:'#92400e'}])}
-                <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:14px;">
-                    <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:#94a3b8;margin-bottom:10px;">Tasks by Project</div>
-                    ${pdfBarChart(projCounts,'#3b82f6')}
-                </div>
-            </div>
-            <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:14px;text-align:center;">
-                <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:#94a3b8;margin-bottom:8px;">Completion Rate</div>
-                ${pdfDonut(pct,'#3b82f6')}
-                <div style="margin-top:8px;font-size:10px;color:#64748b;line-height:1.8;">
-                    <div><span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#10b981;margin-right:4px;"></span>Completed</div>
-                    <div><span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#3b82f6;margin-right:4px;"></span>In Progress</div>
-                    <div><span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#f59e0b;margin-right:4px;"></span>Not Started</div>
-                </div>
-            </div>
-        </div>
-        <div style="background:#fff;border:1px solid #e2e8f0;border-radius:10px;overflow:hidden;">
-            <div style="background:#3b82f6;padding:10px 14px;"><span style="font-size:12px;font-weight:700;color:#fff;">All Assigned Tasks</span></div>
-            ${pdfTaskTable(allRecords,'#3b82f6',true)}
-        </div>
-        <div style="margin-top:16px;padding-top:10px;border-top:1px solid #e2e8f0;font-size:9px;color:#94a3b8;display:flex;justify-content:space-between;">
-            <span>Volga Infosys Private Limited &mdash; Confidential</span><span>Generated: ${now} by ${userName}</span>
-        </div>`;
-    triggerPDF(html,`${userId}-summary.pdf`);
-    showCustomAlert('Generating PDF',`${displayName}'s PDF is being prepared&hellip;`,false);
-}
+        // Calculate days between two dates
+        function daysBetween(date1Str, date2Str) {
+            if (!date1Str || !date2Str) return null;
+            const d1 = new Date(date1Str);
+            const d2 = new Date(date2Str);
+            if (isNaN(d1) || isNaN(d2)) return null;
+            return Math.floor((d2 - d1) / (1000 * 60 * 60 * 24));
+        }
 
-async function downloadAllProjectsPDF(){
-    const projects=getDlProjects();
-    const now=new Date().toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});
-    let total=0,done=0,prog=0,ns=0;
-    const allRecs=[];
-    const projBarsData={};
-    for(const p of projects){
-        const recs=await getDlRecordsAsync(p);
-        recs.forEach(r=>allRecs.push({...r,_projectName:p.name}));
-        const d=recs.filter(r=>r.status==='Completed').length;
-        total+=recs.length; done+=d; prog+=recs.filter(r=>r.status==='In Progress').length; ns+=recs.filter(r=>r.status==='Not Started').length;
-        if(recs.length) projBarsData[p.name]=d+'/'+recs.length;
-    }
-    const pct=total?Math.round(done/total*100):0;
-    const projBarsFull={};
-    for(const p of projects){const recs=await getDlRecordsAsync(p);if(recs.length) projBarsFull[p.name]=recs.filter(r=>r.status==='Completed').length;}
-    const html=`${pdfHeader('Portal Overview','All Projects Summary Report',now)}
-        <div style="display:grid;grid-template-columns:1fr 196px;gap:18px;margin-bottom:18px;align-items:start;">
-            <div>
-                ${pdfStatCards([{label:'Total Tasks',val:total,bg:'#f8fafc',border:'#e2e8f0',fg:'#1e293b'},{label:'Completed',val:done,bg:'#d1fae5',border:'#a7f3d0',fg:'#065f46'},{label:'In Progress',val:prog,bg:'#dbeafe',border:'#bfdbfe',fg:'#1e40af'},{label:'Not Started',val:ns,bg:'#fef3c7',border:'#fde68a',fg:'#92400e'}])}
-                <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:14px;">
-                    <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:#94a3b8;margin-bottom:10px;">Progress by Project</div>
-                    ${pdfBarChart(projBarsFull,'#3b82f6')}
-                </div>
-            </div>
-            <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:14px;text-align:center;">
-                <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:#94a3b8;margin-bottom:8px;">Overall Completion</div>
-                ${pdfDonut(pct,'#3b82f6')}
-                <div style="margin-top:8px;font-size:12px;font-weight:700;color:#1e293b;">${projects.length} Projects</div>
-            </div>
-        </div>
-        <div style="background:#fff;border:1px solid #e2e8f0;border-radius:10px;overflow:hidden;">
-            <div style="background:#1e293b;padding:10px 14px;"><span style="font-size:12px;font-weight:700;color:#fff;">All Projects &mdash; Task Table</span></div>
-            ${pdfTaskTable(allRecs,'#3b82f6',true)}
-        </div>
-        <div style="margin-top:16px;padding-top:10px;border-top:1px solid #e2e8f0;font-size:9px;color:#94a3b8;display:flex;justify-content:space-between;">
-            <span>Volga Infosys Private Limited &mdash; Confidential</span><span>Generated: ${now} by ${userName}</span>
-        </div>`;
-    triggerPDF(html,'all-projects-summary.pdf');
-    showCustomAlert('Generating PDF','Portal overview PDF is being prepared&hellip;',false);
-}
+        // Check if task is overdue
+        function isTaskOverdue(task) {
+            if (!task.target || task.status === 'Completed') return false;
+            const today = new Date().setHours(0, 0, 0, 0);
+            const target = new Date(task.target).setHours(0, 0, 0, 0);
+            return target < today;
+        }
 
-async function downloadAllUsersPDF(){
-    const now=new Date().toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});
-    const projects=getDlProjects();
-    const allRecs=[];
-    for(const p of projects){const recs=await getDlRecordsAsync(p);recs.forEach(r=>allRecs.push({...r,_projectName:p.name}));}
-    const userCounts={};
-    allRecs.forEach(r=>{if(r.user) userCounts[r.user]=(userCounts[r.user]||0)+1;});
-    const total=allRecs.length;
-    const done=allRecs.filter(r=>r.status==='Completed').length;
-    const prog=allRecs.filter(r=>r.status==='In Progress').length;
-    const ns=allRecs.filter(r=>r.status==='Not Started').length;
-    const pct=total?Math.round(done/total*100):0;
-    const sorted=allRecs.slice().sort((a,b)=>(a.user||'').localeCompare(b.user||''));
-    const html=`${pdfHeader('All Users Summary','Complete Team Task Report',now)}
-        <div style="display:grid;grid-template-columns:1fr 196px;gap:18px;margin-bottom:18px;align-items:start;">
-            <div>
-                ${pdfStatCards([{label:'Total Tasks',val:total,bg:'#f8fafc',border:'#e2e8f0',fg:'#1e293b'},{label:'Completed',val:done,bg:'#d1fae5',border:'#a7f3d0',fg:'#065f46'},{label:'In Progress',val:prog,bg:'#dbeafe',border:'#bfdbfe',fg:'#1e40af'},{label:'Not Started',val:ns,bg:'#fef3c7',border:'#fde68a',fg:'#92400e'}])}
-                <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:14px;">
-                    <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:#94a3b8;margin-bottom:10px;">Tasks per Team Member</div>
-                    ${pdfBarChart(userCounts,'#3b82f6')}
+        // Check if task is near due (within 7 days)
+        function isTaskNearDue(task) {
+            if (!task.target || task.status === 'Completed') return false;
+            const today = new Date().setHours(0, 0, 0, 0);
+            const target = new Date(task.target).setHours(0, 0, 0, 0);
+            const diff = (target - today) / (1000 * 60 * 60 * 24);
+            return diff >= 0 && diff <= 7;
+        }
+
+        // Calculate average cycle time (assigned to completion)
+        function calculateAverageCycleTime(records) {
+            let totalDays = 0, count = 0;
+            records.forEach(r => {
+                if (r.status === 'Completed' && r.assigned && r.completion) {
+                    const days = daysBetween(r.assigned, r.completion);
+                    if (days !== null && days >= 0) {
+                        totalDays += days;
+                        count++;
+                    }
+                }
+            });
+            return count > 0 ? (totalDays / count).toFixed(1) : null;
+        }
+
+        // Calculate slippage rate (missed deadlines)
+        function calculateSlippageRate(records) {
+            let targetCount = 0, slippedCount = 0;
+            records.forEach(r => {
+                if (r.target) {
+                    targetCount++;
+                    if (r.status === 'Completed' && r.completion) {
+                        if (new Date(r.completion) > new Date(r.target)) {
+                            slippedCount++;
+                        }
+                    } else if (isTaskOverdue(r)) {
+                        slippedCount++;
+                    }
+                }
+            });
+            return targetCount > 0 ? Math.round((slippedCount / targetCount) * 100) : 0;
+        }
+
+        // Calculate project health score (0-100)
+        function calculateHealthScore(total, done, overdue) {
+            if (total === 0) return 100;
+            const completionScore = (done / total) * 50;
+            const overdueScore = 50 - ((overdue / total) * 50);
+            return Math.round(completionScore + overdueScore);
+        }
+
+        // Predict completion date based on current velocity
+        function predictCompletionDate(records) {
+            const completed = records.filter(r => r.status === 'Completed');
+            const remaining = records.filter(r => r.status !== 'Completed');
+            
+            if (completed.length === 0 || remaining.length === 0) return null;
+            
+            const avgCycle = calculateAverageCycleTime(records);
+            if (!avgCycle) return null;
+            
+            const daysNeeded = remaining.length * parseFloat(avgCycle);
+            const predicted = new Date();
+            predicted.setDate(predicted.getDate() + Math.ceil(daysNeeded));
+            
+            return predicted.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+        }
+
+        // Predict date and duration when all "Not Started" tasks transition to "In Progress"
+        function predictAllInProgressDate(records) {
+            const ns = records.filter(r => r.status === 'Not Started').length;
+            if (ns === 0) return { date: 'All Active/Done', durationText: '0 days' };
+            
+            const velocity = parseFloat(calculateVelocity(records));
+            if (isNaN(velocity) || velocity === 0) return { date: 'TBD', durationText: 'TBD (No velocity data)' };
+            
+            const weeks = ns / velocity;
+            const days = Math.ceil(weeks * 7);
+            const predicted = new Date();
+            predicted.setDate(predicted.getDate() + days);
+            const dateStr = predicted.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+            
+            let durationText;
+            if (days >= 30) {
+                durationText = `${(days / 30.4).toFixed(1)} Months (${days} Days)`;
+            } else if (days >= 7) {
+                durationText = `${weeks.toFixed(1)} Weeks (${days} Days)`;
+            } else {
+                durationText = `${days} Days`;
+            }
+            
+            return { date: dateStr, durationText: durationText };
+        }
+
+        // Calculate velocity (tasks completed per week)
+        function calculateVelocity(records) {
+            const completed = records.filter(r => r.status === 'Completed' && r.completion);
+            if (completed.length === 0) return 0;
+            
+            const completionDates = completed.map(r => new Date(r.completion));
+            const oldest = Math.min(...completionDates);
+            const newest = Math.max(...completionDates);
+            const weeks = Math.max(1, (newest - oldest) / (1000 * 60 * 60 * 24 * 7));
+            
+            return (completed.length / weeks).toFixed(1);
+        }
+
+        // Identify at-risk tasks
+        function identifyRiskyTasks(records) {
+            const riskyTasks = [];
+            const avgCycle = calculateAverageCycleTime(records);
+            
+            records.forEach(r => {
+                if (r.status === 'Completed') return;
+                
+                let riskFactors = [];
+                let riskLevel = 0;
+                
+                // Risk factor 1: Overdue
+                if (isTaskOverdue(r)) {
+                    riskFactors.push('Overdue');
+                    riskLevel += 3;
+                }
+                
+                // Risk factor 2: Near due
+                if (isTaskNearDue(r)) {
+                    riskFactors.push('Due Soon');
+                    riskLevel += 2;
+                }
+                
+                // Risk factor 3: Long running task
+                if (r.status === 'In Progress' && r.assigned && avgCycle) {
+                    const currentDays = daysBetween(r.assigned, new Date().toISOString());
+                    if (currentDays > parseFloat(avgCycle) * 1.5) {
+                        riskFactors.push('Exceeds Avg Cycle');
+                        riskLevel += 2;
+                    }
+                }
+                
+                // Risk factor 4: Not started but due soon
+                if (r.status === 'Not Started' && r.target) {
+                    const daysUntilDue = daysBetween(new Date().toISOString(), r.target);
+                    if (daysUntilDue !== null && daysUntilDue < 3) {
+                        riskFactors.push('Not Started & Due Soon');
+                        riskLevel += 3;
+                    }
+                }
+                
+                if (riskLevel > 0) {
+                    riskyTasks.push({
+                        task: r,
+                        riskLevel,
+                        riskFactors: riskFactors.join(', ')
+                    });
+                }
+            });
+            
+            return riskyTasks.sort((a, b) => b.riskLevel - a.riskLevel);
+        }
+
+        // Generate actionable insights
+        function generateInsights(records, entityName, isUser = false) {
+            const insights = [];
+            const overdue = records.filter(isTaskOverdue);
+            const velocity = calculateVelocity(records);
+            const avgCycle = calculateAverageCycleTime(records);
+            const riskyTasks = identifyRiskyTasks(records);
+            const slippage = calculateSlippageRate(records);
+            const activeCount = records.filter(r => r.status !== 'Completed').length;
+            
+            // Critical alerts
+            if (overdue.length > 0) {
+                insights.push({
+                    type: 'critical',
+                    icon: '🚨',
+                    title: 'Immediate Attention Required',
+                    message: `${overdue.length} task(s) are overdue. Review and reallocate resources immediately to get them back on track.`
+                });
+            }
+            
+            // Risk warnings
+            if (riskyTasks.length >= 3) {
+                insights.push({
+                    type: 'warning',
+                    icon: '⚠️',
+                    title: 'Multiple Tasks at Risk',
+                    message: `${riskyTasks.length} tasks are currently at risk. Consider extending target dates or balancing team workloads.`
+                });
+            }
+            
+            // Slippage concerns
+            if (slippage > 30) {
+                insights.push({
+                    type: 'warning',
+                    icon: '📈',
+                    title: 'High Deadline Slippage',
+                    message: `${slippage}% of tasks are slipping past their deadlines. Recommend adjusting planning velocity parameters.`
+                });
+            }
+            
+            // Velocity insights
+            if (velocity > 2) {
+                insights.push({
+                    type: 'success',
+                    icon: '🎯',
+                    title: 'High Team Velocity',
+                    message: `Current velocity is ${velocity} tasks/week. Team performance is exceptionally high. Keep up the momentum!`
+                });
+            } else if (velocity > 0 && velocity < 1) {
+                insights.push({
+                    type: 'info',
+                    icon: '💡',
+                    title: 'Velocity Optimization Opportunity',
+                    message: `Velocity is ${velocity} tasks/week. Consider splitting large tasks into smaller, more manageable sub-tasks.`
+                });
+            }
+            
+            // User-specific workload insights
+            if (isUser) {
+                if (activeCount > 4) {
+                    insights.push({
+                        type: 'warning',
+                        icon: '⚖️',
+                        title: 'Workload Concentration Alert',
+                        message: `Assigned ${activeCount} active tasks. Recommend distributing future tasks to other available team members.`
+                    });
+                } else if (activeCount === 0) {
+                    insights.push({
+                        type: 'success',
+                        icon: '⚡',
+                        title: 'Capacity Available',
+                        message: `All assigned tasks completed. Ready and available for new project assignments.`
+                    });
+                }
+            }
+            
+            // Cycle time optimization
+            if (avgCycle && parseFloat(avgCycle) > 12) {
+                insights.push({
+                    type: 'info',
+                    icon: '⏱️',
+                    title: 'Cycle Time Review Needed',
+                    message: `Average cycle time is ${avgCycle} days. Review potential blockers or approval delays in the workflow.`
+                });
+            }
+            
+            // Positive progress
+            const completionPct = records.length > 0 ? Math.round((records.filter(r => r.status === 'Completed').length / records.length) * 100) : 0;
+            if (completionPct >= 75) {
+                insights.push({
+                    type: 'success',
+                    icon: '🏆',
+                    title: 'Outstanding Progress',
+                    message: `Project completion is at ${completionPct}%. Excellent pace towards final milestone delivery.`
+                });
+            }
+            
+            return insights;
+        }
+
+
+
+        function pdfInsightsSection(insights) {
+            if (!insights || insights.length === 0) {
+                return `
+                <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:12px; padding:14px; margin-bottom:16px; text-align:center; color:#94a3b8; font-size:10px;">
+                    No strategic insights computed for this reporting cycle.
+                </div>`;
+            }
+            
+            const cards = insights.map(insight => {
+                let border, bg, fg, title;
+                if (insight.type === 'critical') {
+                    border = '#f87171'; bg = '#fef2f2'; fg = '#b91c1c'; title = '#991b1b';
+                } else if (insight.type === 'warning') {
+                    border = '#fbbf24'; bg = '#fffbeb'; fg = '#d97706'; title = '#92400e';
+                } else if (insight.type === 'success') {
+                    border = '#34d399'; bg = '#f0fdf4'; fg = '#059669'; title = '#065f46';
+                } else {
+                    border = '#60a5fa'; bg = '#eff6ff'; fg = '#2563eb'; title = '#1e40af';
+                }
+                
+                return `
+                <div style="background:${bg}; border-left:4px solid ${border}; border-radius:8px; padding:10px 12px; margin-bottom:8px; border-top:1px solid ${border}15; border-right:1px solid ${border}15; border-bottom:1px solid ${border}15;">
+                    <div style="display:flex; align-items:start; gap:8px;">
+                        <span style="font-size:14px; line-height:1; margin-top:1px;">${insight.icon}</span>
+                        <div style="flex:1;">
+                            <div style="font-size:9.5px; font-weight:800; color:${title}; margin-bottom:2px; text-transform:uppercase; letter-spacing:0.4px;">${insight.title}</div>
+                            <div style="font-size:9px; color:#334155; line-height:1.4;">${insight.message}</div>
+                        </div>
+                    </div>
+                </div>`;
+            }).join('');
+            
+            return `
+            <div style="margin-bottom:16px;">
+                <div style="font-size:11px; font-weight:800; color:#0f172a; margin-bottom:10px; text-transform:uppercase; letter-spacing:0.8px; display:flex; align-items:center; gap:6px;">
+                    <span style="font-size:14px;">💡</span> Key Strategic Insights & Recommendations
                 </div>
-            </div>
-            <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:14px;text-align:center;">
-                <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:#94a3b8;margin-bottom:8px;">Overall Completion</div>
-                ${pdfDonut(pct,'#3b82f6')}
-                <div style="margin-top:8px;font-size:12px;font-weight:700;color:#1e293b;">${authUsers.length} Members</div>
-            </div>
-        </div>
-        <div style="background:#fff;border:1px solid #e2e8f0;border-radius:10px;overflow:hidden;">
-            <div style="background:#1e293b;padding:10px 14px;"><span style="font-size:12px;font-weight:700;color:#fff;">All Tasks by Member</span></div>
-            ${pdfTaskTable(sorted,'#3b82f6',true)}
-        </div>
-        <div style="margin-top:16px;padding-top:10px;border-top:1px solid #e2e8f0;font-size:9px;color:#94a3b8;display:flex;justify-content:space-between;">
-            <span>Volga Infosys Private Limited &mdash; Confidential</span><span>Generated: ${now} by ${userName}</span>
-        </div>`;
-    triggerPDF(html,'all-users-summary.pdf');
-    showCustomAlert('Generating PDF','All users PDF is being prepared&hellip;',false);
-}
+                ${cards}
+            </div>`;
+        }
+
+        function pdfRiskAssessment(records) {
+            const riskyTasks = identifyRiskyTasks(records);
+            
+            if (riskyTasks.length === 0) {
+                return `
+                <div style="background:#f0fdf4; border:1px solid #bbf7d0; border-radius:12px; padding:14px; margin-bottom:16px; text-align:center; display:flex; flex-direction:column; align-items:center; gap:3px;">
+                    <span style="font-size:16px;">🛡️</span>
+                    <div style="font-size:10px; font-weight:800; color:#16a34a; text-transform:uppercase; letter-spacing:0.5px;">All Systems Operational</div>
+                    <div style="font-size:9px; color:#15803d;">0 high-risk assignments identified. Delivery schedules are fully optimized.</div>
+                </div>`;
+            }
+            
+            const rows = riskyTasks.slice(0, 4).map((risk, i) => {
+                let badgeColor, badgeBg;
+                if (risk.riskLevel >= 5) {
+                    badgeColor = '#dc2626'; badgeBg = '#fef2f2';
+                } else if (risk.riskLevel >= 3) {
+                    badgeColor = '#d97706'; badgeBg = '#fffbeb';
+                } else {
+                    badgeColor = '#2563eb'; badgeBg = '#eff6ff';
+                }
+                
+                const name = taskName(risk.task) || 'Untitled Task';
+                const assignee = risk.task.user || 'Unassigned';
+                
+                return `
+                <tr style="background:${i % 2 === 0 ? '#ffffff' : '#f8fafc'};">
+                    <td style="padding:6px 8px; font-size:9.5px; color:#1e293b; border-bottom:1px solid #e2e8f0; font-weight:600; max-width:140px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${name}</td>
+                    <td style="padding:6px 8px; font-size:9.5px; color:#475569; border-bottom:1px solid #e2e8f0;">${assignee}</td>
+                    <td style="padding:6px 8px; font-size:9px; border-bottom:1px solid #e2e8f0; text-align:center;">
+                        <span style="background:${badgeBg}; color:${badgeColor}; padding:1.5px 6px; border-radius:10px; font-weight:800; font-size:7.5px; border:1px solid ${badgeColor}20;">${risk.riskLevel >= 5 ? 'CRITICAL' : risk.riskLevel >= 3 ? 'WARNING' : 'STABLE'}</span>
+                    </td>
+                    <td style="padding:6px 8px; font-size:9px; color:#ef4444; border-bottom:1px solid #e2e8f0; font-weight:600; letter-spacing:0.1px;">${risk.riskFactors}</td>
+                </tr>`;
+            }).join('');
+            
+            return `
+            <div style="margin-bottom:16px;">
+                <div style="font-size:11px; font-weight:800; color:#0f172a; margin-bottom:10px; text-transform:uppercase; letter-spacing:0.8px; display:flex; align-items:center; gap:6px;">
+                    <span style="font-size:14px;">⚠️</span> Risk & schedule Bottlenecks
+                </div>
+                <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:12px; overflow:hidden; box-shadow:0 1px 3px rgba(0,0,0,0.02);">
+                    <table style="width:100%; border-collapse:collapse; text-align:left;">
+                        <thead>
+                            <tr style="background:#f8fafc;">
+                                <th style="padding:6px 8px; font-size:8px; font-weight:800; color:#64748b; text-transform:uppercase; border-bottom:2px solid #e2e8f0;">Engine / Task</th>
+                                <th style="padding:6px 8px; font-size:8px; font-weight:800; color:#64748b; text-transform:uppercase; border-bottom:2px solid #e2e8f0;">Assignee</th>
+                                <th style="padding:6px 8px; font-size:8px; font-weight:800; color:#64748b; text-transform:uppercase; text-align:center; border-bottom:2px solid #e2e8f0;">Risk</th>
+                                <th style="padding:6px 8px; font-size:8px; font-weight:800; color:#64748b; text-transform:uppercase; border-bottom:2px solid #e2e8f0;">Factors</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${rows}
+                        </tbody>
+                    </table>
+                </div>
+            </div>`;
+        }
+
+        // ─── PDF Download Functions ───────────────────────────────────────────────────
+        async function downloadSingleProjectPDF(id){
+            const project=getDlProjects().find(p=>p.id===id);
+            if(!project) return;
+            const records=await getDlRecordsAsync(project);
+            const total=records.length;
+            const done=records.filter(r=>r.status==='Completed').length;
+            const prog=records.filter(r=>r.status==='In Progress').length;
+            const ns=records.filter(r=>r.status==='Not Started').length;
+            const pct=total?Math.round(done/total*100):0;
+            const color=project.color||'#3b82f6';
+            const now=new Date().toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});
+            const userCounts={};
+            records.forEach(r=>{if(r.user) userCounts[r.user]=(userCounts[r.user]||0)+1;});
+            
+            const insights = generateInsights(records, project.name, false);
+            
+            const html=`${pdfHeader(project.name+' Summary Report','Strategic Project Summary Allocation',now)}
+                <div style="display:flex; flex-direction:row; gap:16px; margin-bottom:16px; align-items:start;">
+                    <div style="width:58%; display:flex; flex-direction:column; gap:14px;">
+                        ${pdfStatCards([{label:'Total Tasks',val:total,bg:'#f8fafc',border:'#e2e8f0',fg:'#1e293b'},{label:'Completed',val:done,bg:'#ecfdf5',border:'#a7f3d0',fg:'#047857'},{label:'In Progress',val:prog,bg:'#eff6ff',border:'#bfdbfe',fg:'#1d4ed8'},{label:'Not Started',val:ns,bg:'#fffbeb',border:'#fde68a',fg:'#b45309'}])}
+                    </div>
+                    <div style="width:40%; display:flex; flex-direction:column; gap:14px;">
+                        <div style="display:flex; flex-direction:row; gap:12px; background:#ffffff; border:1px solid #e2e8f0; border-radius:12px; padding:14px; align-items:center;">
+                            <div style="text-align:center; flex:1;">
+                                <div style="font-size:9px; font-weight:800; text-transform:uppercase; letter-spacing:0.8px; color:#64748b; margin-bottom:8px;">Completion Rate</div>
+                                ${pdfDonut(pct,color)}
+                            </div>
+                            <div style="flex:1.2; font-size:9px; color:#475569; line-height:1.8;">
+                                <div style="font-weight:700; color:#1e293b; margin-bottom:4px; text-transform:uppercase;">Milestones</div>
+                                <div><span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#10b981;margin-right:6px;"></span>Completed (${done})</div>
+                                <div><span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#3b82f6;margin-right:6px;"></span>In Progress (${prog})</div>
+                                <div><span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#f59e0b;margin-right:6px;"></span>Not Started (${ns})</div>
+                            </div>
+                        </div>
+                        <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:12px; padding:14px;">
+                            <div style="font-size:9px; font-weight:800; text-transform:uppercase; letter-spacing:0.8px; color:#64748b; margin-bottom:10px;">Resource Allocation</div>
+                            ${pdfBarChart(userCounts,color)}
+                        </div>
+                    </div>
+                </div>
+                <div style="page-break-before: always; background:#ffffff; border:1px solid #e2e8f0; border-radius:12px; overflow:visible;">
+                    <div style="background:${color}; padding:10px 14px; display:flex; justify-content:space-between; align-items:center;">
+                        <span style="font-size:11px; font-weight:800; color:#ffffff; text-transform:uppercase; letter-spacing:0.8px;">Comprehensive Task Registry</span>
+                        <span style="font-size:9px; color:rgba(255,255,255,0.85); font-weight:600;">Total Entries: ${total}</span>
+                    </div>
+                    ${pdfTaskTable(records,color,false)}
+                </div>
+                <div style="margin-top:16px; padding-top:10px; border-top:1px solid #e2e8f0; font-size:8.5px; color:#94a3b8; display:flex; justify-content:space-between; font-weight:600; letter-spacing:0.3px;">
+                    <span>VOLGA INFOSYS PRIVATE LIMITED &mdash; COMPANY CONFIDENTIAL</span><span>Page 1 of 1</span>
+                </div>`;
+            triggerPDF(html,`${project.id}-summary-report.pdf`);
+            showCustomAlert('Generating PDF',`${project.name} Strategic Report is being prepared&hellip;`,false);
+        }
+
+        async function downloadSingleUserPDF(userId){
+            const user=authUsers.find(u=>u.id===userId);
+            if(!user) return;
+            const displayName=user.displayName||user.id;
+            const projects=getDlProjects();
+            const allRecords=[];
+            const projCounts={};
+            for(const p of projects){
+                const recs=await getDlRecordsAsync(p);
+                const mine=recs.filter(r=>r.user===displayName);
+                mine.forEach(r=>allRecords.push({...r,_projectName:p.name}));
+                if(mine.length) projCounts[p.name]=mine.length;
+            }
+            const total=allRecords.length;
+            const done=allRecords.filter(r=>r.status==='Completed').length;
+            const prog=allRecords.filter(r=>r.status==='In Progress').length;
+            const ns=allRecords.filter(r=>r.status==='Not Started').length;
+            const pct=total?Math.round(done/total*100):0;
+            const now=new Date().toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});
+            const roleBadge=`<span style="display:inline-block;padding:2px 8px;border-radius:20px;font-size:9.5px;font-weight:800;background:rgba(59,130,246,0.1);color:#1d4ed8;text-transform:uppercase;letter-spacing:0.5px;">${user.role||'user'}</span>`;
+            
+            const insights = generateInsights(allRecords, displayName, true);
+
+            const html=`${pdfHeader(displayName,`Personal Task Portfolio &nbsp;${roleBadge}`,now)}
+                <div style="display:flex; flex-direction:row; gap:16px; margin-bottom:16px; align-items:start;">
+                    <div style="width:58%; display:flex; flex-direction:column; gap:14px;">
+                        ${pdfStatCards([{label:'Total Assigned',val:total,bg:'#f8fafc',border:'#e2e8f0',fg:'#1e293b'},{label:'Completed',val:done,bg:'#ecfdf5',border:'#a7f3d0',fg:'#047857'},{label:'In Progress',val:prog,bg:'#eff6ff',border:'#bfdbfe',fg:'#1d4ed8'},{label:'Not Started',val:ns,bg:'#fffbeb',border:'#fde68a',fg:'#b45309'}])}
+                    </div>
+                    <div style="width:40%; display:flex; flex-direction:column; gap:14px;">
+                        <div style="display:flex; flex-direction:row; gap:12px; background:#ffffff; border:1px solid #e2e8f0; border-radius:12px; padding:14px; align-items:center;">
+                            <div style="text-align:center; flex:1;">
+                                <div style="font-size:9px; font-weight:800; text-transform:uppercase; letter-spacing:0.8px; color:#64748b; margin-bottom:8px;">Completion Rate</div>
+                                ${pdfDonut(pct,'#3b82f6')}
+                            </div>
+                            <div style="flex:1.2; font-size:9px; color:#475569; line-height:1.8;">
+                                <div style="font-weight:700; color:#1e293b; margin-bottom:4px; text-transform:uppercase;">Overview</div>
+                                <div><span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#10b981;margin-right:6px;"></span>Done Tasks (${done})</div>
+                                <div><span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#3b82f6;margin-right:6px;"></span>Active Work (${prog})</div>
+                                <div><span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#f59e0b;margin-right:6px;"></span>Pending (${ns})</div>
+                            </div>
+                        </div>
+                        <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:12px; padding:14px;">
+                            <div style="font-size:9px; font-weight:800; text-transform:uppercase; letter-spacing:0.8px; color:#64748b; margin-bottom:10px;">Tasks by Project</div>
+                            ${pdfBarChart(projCounts,'#3b82f6')}
+                        </div>
+                    </div>
+                </div>
+                <div style="page-break-before: always; background:#ffffff; border:1px solid #e2e8f0; border-radius:12px; overflow:visible;">
+                    <div style="background:#3b82f6; padding:10px 14px; display:flex; justify-content:space-between; align-items:center;">
+                        <span style="font-size:11px; font-weight:800; color:#ffffff; text-transform:uppercase; letter-spacing:0.8px;">Assigned Task Registry</span>
+                        <span style="font-size:9px; color:rgba(255,255,255,0.85); font-weight:600;">Total: ${total}</span>
+                    </div>
+                    ${pdfTaskTable(allRecords,'#3b82f6',true)}
+                </div>
+                <div style="margin-top:16px; padding-top:10px; border-top:1px solid #e2e8f0; font-size:8.5px; color:#94a3b8; display:flex; justify-content:space-between; font-weight:600; letter-spacing:0.3px;">
+                    <span>VOLGA INFOSYS PRIVATE LIMITED &mdash; PERSONAL DOSSIER</span><span>Page 1 of 1</span>
+                </div>`;
+            triggerPDF(html,`${userId}-summary-report.pdf`);
+            showCustomAlert('Generating PDF',`${displayName}'s Portfolio PDF is being prepared&hellip;`,false);
+        }
+
+        async function downloadAllProjectsPDF(){
+            const projects=getDlProjects();
+            const now=new Date().toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});
+            let total=0,done=0,prog=0,ns=0;
+            const allRecs=[];
+            const projBarsData={};
+            for(const p of projects){
+                const recs=await getDlRecordsAsync(p);
+                recs.forEach(r=>allRecs.push({...r,_projectName:p.name}));
+                const d=recs.filter(r=>r.status==='Completed').length;
+                total+=recs.length; done+=d; prog+=recs.filter(r=>r.status==='In Progress').length; ns+=recs.filter(r=>r.status==='Not Started').length;
+                if(recs.length) projBarsData[p.name]=d+'/'+recs.length;
+            }
+            const pct=total?Math.round(done/total*100):0;
+            const projBarsFull={};
+            for(const p of projects){const recs=await getDlRecordsAsync(p);if(recs.length) projBarsFull[p.name]=recs.filter(r=>r.status==='Completed').length;}
+            
+            const insights = generateInsights(allRecs, 'Portal Overview', false);
+
+            const html=`${pdfHeader('Portal Overview','Comprehensive Multi-Project Strategic Report',now)}
+                <div style="display:flex; flex-direction:row; gap:16px; margin-bottom:16px; align-items:start;">
+                    <div style="width:58%; display:flex; flex-direction:column; gap:14px;">
+                        ${pdfStatCards([{label:'Total Tasks',val:total,bg:'#f8fafc',border:'#e2e8f0',fg:'#1e293b'},{label:'Completed',val:done,bg:'#ecfdf5',border:'#a7f3d0',fg:'#047857'},{label:'In Progress',val:prog,bg:'#eff6ff',border:'#bfdbfe',fg:'#1d4ed8'},{label:'Not Started',val:ns,bg:'#fffbeb',border:'#fde68a',fg:'#b45309'}])}
+                    </div>
+                    <div style="width:40%; display:flex; flex-direction:column; gap:14px;">
+                        <div style="display:flex; flex-direction:row; gap:12px; background:#ffffff; border:1px solid #e2e8f0; border-radius:12px; padding:14px; align-items:center;">
+                            <div style="text-align:center; flex:1;">
+                                <div style="font-size:9px; font-weight:800; text-transform:uppercase; letter-spacing:0.8px; color:#64748b; margin-bottom:8px;">Global Completion</div>
+                                ${pdfDonut(pct,'#3b82f6')}
+                            </div>
+                            <div style="flex:1.2; font-size:9px; color:#475569; line-height:1.8;">
+                                <div style="font-weight:700; color:#1e293b; margin-bottom:4px; text-transform:uppercase;">Volume Summary</div>
+                                <div>Active Projects: <strong>${projects.length}</strong></div>
+                                <div>Total Milestones: <strong>${total}</strong></div>
+                                <div>Global Done: <strong>${done}</strong></div>
+                            </div>
+                        </div>
+                        <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:12px; padding:14px;">
+                            <div style="font-size:9px; font-weight:800; text-transform:uppercase; letter-spacing:0.8px; color:#64748b; margin-bottom:10px;">Progress by Project</div>
+                            ${pdfBarChart(projBarsFull,'#3b82f6')}
+                        </div>
+                    </div>
+                </div>
+                <div style="page-break-before: always; background:#ffffff; border:1px solid #e2e8f0; border-radius:12px; overflow:visible;">
+                    <div style="background:#1e293b; padding:10px 14px; display:flex; justify-content:space-between; align-items:center;">
+                        <span style="font-size:11px; font-weight:800; color:#ffffff; text-transform:uppercase; letter-spacing:0.8px;">Global Project Registry Table</span>
+                        <span style="font-size:9px; color:rgba(255,255,255,0.85); font-weight:600;">Total Items: ${total}</span>
+                    </div>
+                    ${pdfTaskTable(allRecs,'#3b82f6',true)}
+                </div>
+                <div style="margin-top:16px; padding-top:10px; border-top:1px solid #e2e8f0; font-size:8.5px; color:#94a3b8; display:flex; justify-content:space-between; font-weight:600; letter-spacing:0.3px;">
+                    <span>VOLGA INFOSYS PRIVATE LIMITED &mdash; PORTAL GLOBAL AUDIT</span><span>Page 1 of 1</span>
+                </div>`;
+            triggerPDF(html,'all-projects-summary-report.pdf');
+            showCustomAlert('Generating PDF','Portal Overview Strategic PDF is being prepared&hellip;',false);
+        }
+
+        async function downloadAllUsersPDF(){
+            const now=new Date().toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});
+            const projects=getDlProjects();
+            const allRecs=[];
+            for(const p of projects){const recs=await getDlRecordsAsync(p);recs.forEach(r=>allRecs.push({...r,_projectName:p.name}));}
+            const userCounts={};
+            allRecs.forEach(r=>{if(r.user) userCounts[r.user]=(userCounts[r.user]||0)+1;});
+            const total=allRecs.length;
+            const done=allRecs.filter(r=>r.status==='Completed').length;
+            const prog=allRecs.filter(r=>r.status==='In Progress').length;
+            const ns=allRecs.filter(r=>r.status==='Not Started').length;
+            const pct=total?Math.round(done/total*100):0;
+            const sorted=allRecs.slice().sort((a,b)=>(a.user||'').localeCompare(b.user||''));
+            
+            const insights = generateInsights(allRecs, 'Team Overview', false);
+
+            const html=`${pdfHeader('All Users Summary','Complete Team Workload and Performance Report',now)}
+                <div style="display:flex; flex-direction:row; gap:16px; margin-bottom:16px; align-items:start;">
+                    <div style="width:58%; display:flex; flex-direction:column; gap:14px;">
+                        ${pdfStatCards([{label:'Total Tasks',val:total,bg:'#f8fafc',border:'#e2e8f0',fg:'#1e293b'},{label:'Completed',val:done,bg:'#ecfdf5',border:'#a7f3d0',fg:'#047857'},{label:'In Progress',val:prog,bg:'#eff6ff',border:'#bfdbfe',fg:'#1d4ed8'},{label:'Not Started',val:ns,bg:'#fffbeb',border:'#fde68a',fg:'#b45309'}])}
+                    </div>
+                    <div style="width:40%; display:flex; flex-direction:column; gap:14px;">
+                        <div style="display:flex; flex-direction:row; gap:12px; background:#ffffff; border:1px solid #e2e8f0; border-radius:12px; padding:14px; align-items:center;">
+                            <div style="text-align:center; flex:1;">
+                                <div style="font-size:9px; font-weight:800; text-transform:uppercase; letter-spacing:0.8px; color:#64748b; margin-bottom:8px;">Overall Completion</div>
+                                ${pdfDonut(pct,'#3b82f6')}
+                            </div>
+                            <div style="flex:1.2; font-size:9px; color:#475569; line-height:1.8;">
+                                <div style="font-weight:700; color:#1e293b; margin-bottom:4px; text-transform:uppercase;">Team Metrics</div>
+                                <div>Total Members: <strong>${authUsers.length}</strong></div>
+                                <div>Task Assignments: <strong>${total}</strong></div>
+                                <div>Milestones Reached: <strong>${done}</strong></div>
+                            </div>
+                        </div>
+                        <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:12px; padding:14px;">
+                            <div style="font-size:9px; font-weight:800; text-transform:uppercase; letter-spacing:0.8px; color:#64748b; margin-bottom:10px;">Workload per Team Member</div>
+                            ${pdfBarChart(userCounts,'#3b82f6')}
+                        </div>
+                    </div>
+                </div>
+                <div style="page-break-before: always; background:#ffffff; border:1px solid #e2e8f0; border-radius:12px; overflow:visible;">
+                    <div style="background:#1e293b; padding:10px 14px; display:flex; justify-content:space-between; align-items:center;">
+                        <span style="font-size:11px; font-weight:800; color:#ffffff; text-transform:uppercase; letter-spacing:0.8px;">Global Task Allocation Details</span>
+                        <span style="font-size:9px; color:rgba(255,255,255,0.85); font-weight:600;">Total items: ${total}</span>
+                    </div>
+                    ${pdfTaskTable(sorted,'#3b82f6',true)}
+                </div>
+                <div style="margin-top:16px; padding-top:10px; border-top:1px solid #e2e8f0; font-size:8.5px; color:#94a3b8; display:flex; justify-content:space-between; font-weight:600; letter-spacing:0.3px;">
+                    <span>VOLGA INFOSYS PRIVATE LIMITED &mdash; HUMAN RESOURCES REPORT</span><span>Page 1 of 1</span>
+                </div>`;
+            triggerPDF(html,'all-users-summary-report.pdf');
+            showCustomAlert('Generating PDF','All Users Workload PDF is being prepared&hellip;',false);
+        }
 
 // ─── Collapsible Left-Hand Drawer Logic ───────────────────────────────────────
 function toggleAdminDrawer() {
@@ -6242,5 +6744,6 @@ async function emptyUniversalTrashTab() {
     await renderTrashList();
 }
 </script>
+<script src="chat.js"></script>
 </body>
 </html>
