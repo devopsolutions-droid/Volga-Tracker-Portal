@@ -30,7 +30,9 @@
     let chatMetadata = {}; // Maps chatId -> { lastMessage, lastSenderId, lastUpdated, unreadCount: { userId: count } }
     let firestoreChatListener = null;
     let firestoreMetadataListener = null;
+    let firestoreUsersListener = null;
     let isPanelOpen = false;
+    let activeChatMessages = [];
 
     // 3. Inject CSS Styles
     const cssStyles = `
@@ -694,6 +696,35 @@
         .volga-chat-alert-btn.confirm:hover {
             background: #dc2626;
         }
+
+        /* Mobile background backdrop blur and body scroll freeze */
+        .volga-chat-backdrop {
+            display: none;
+        }
+        @media (max-width: 576px) {
+            .volga-chat-backdrop {
+                display: block;
+                position: fixed;
+                top: 0; left: 0; right: 0; bottom: 0;
+                background: rgba(15, 23, 42, 0.35);
+                backdrop-filter: blur(8px);
+                -webkit-backdrop-filter: blur(8px);
+                z-index: 99997;
+                opacity: 0;
+                pointer-events: none;
+                transition: opacity 0.25s ease;
+            }
+            .volga-chat-backdrop.active {
+                opacity: 1;
+                pointer-events: auto;
+            }
+            body.volga-chat-open {
+                overflow: hidden !important;
+                position: fixed;
+                width: 100%;
+                height: 100%;
+            }
+        }
     `;
 
     // 4. Inject DOM Elements
@@ -841,6 +872,9 @@
                 </div>
             </div>
         </div>
+
+        <!-- Mobile Blur Backdrop -->
+        <div id="volga-chat-backdrop" class="volga-chat-backdrop"></div>
     `;
 
     // Initialize UI on page load
@@ -856,6 +890,9 @@
         wrapper.innerHTML = chatHtml;
         document.body.appendChild(wrapper);
 
+        // Request browser notification permissions
+        requestNotificationPermission();
+
         // Bind events
         document.getElementById('volga-chat-trigger').addEventListener('click', toggleChatPanel);
         document.getElementById('volga-chat-close').addEventListener('click', toggleChatPanel);
@@ -863,6 +900,11 @@
         document.getElementById('volga-chat-send').addEventListener('click', handleSendClick);
         document.getElementById('volga-chat-input').addEventListener('keydown', handleInputKeydown);
         document.getElementById('volga-chat-search').addEventListener('input', handleSearchInput);
+
+        const backdrop = document.getElementById('volga-chat-backdrop');
+        if (backdrop) {
+            backdrop.addEventListener('click', toggleChatPanel);
+        }
 
         // Bind Tab buttons
         document.getElementById('volga-chat-tab-general').addEventListener('click', () => switchRosterTab('general'));
@@ -922,6 +964,9 @@
                 const triggerBtn = document.getElementById('volga-chat-create-group-trigger');
                 if (triggerBtn) triggerBtn.style.display = 'block';
             }
+            updateMyPresence();
+            setInterval(updateMyPresence, 20000);
+            initUsersLiveSync();
             renderInboxList(); // Render immediately!
             initLiveSync();
         });
@@ -930,12 +975,21 @@
     // Toggle Chat Panel visibility
     function toggleChatPanel() {
         const panel = document.getElementById('volga-chat-panel');
+        const backdrop = document.getElementById('volga-chat-backdrop');
         isPanelOpen = !isPanelOpen;
         if (isPanelOpen) {
             panel.classList.add('open');
+            if (backdrop) backdrop.classList.add('active');
+            
+            // Lock body scroll on mobile
+            if (window.innerWidth <= 576) {
+                document.body.classList.add('volga-chat-open');
+            }
             renderInboxList();
         } else {
             panel.classList.remove('open');
+            if (backdrop) backdrop.classList.remove('active');
+            document.body.classList.remove('volga-chat-open');
         }
     }
 
@@ -999,13 +1053,40 @@
         modal.offsetHeight; // Force layout
         modal.classList.add('active');
 
-        const newConfirm = confirmBtn.cloneNode(true);
-        confirmBtn.parentNode.replaceChild(newConfirm, confirmBtn);
-
         newConfirm.addEventListener('click', () => {
             modal.classList.remove('active');
             setTimeout(() => { modal.style.display = 'none'; }, 200);
         });
+    }
+
+    function requestNotificationPermission() {
+        if ('Notification' in window && Notification.permission === 'default') {
+            Notification.requestPermission().then(permission => {
+                if (permission === 'granted') {
+                    console.log("Web notification permission granted.");
+                }
+            });
+        }
+    }
+
+    function showWebNotification(senderName, text, chatDocId = null) {
+        if ('Notification' in window && Notification.permission === 'granted') {
+            const isCurrentlyReading = isPanelOpen && document.hasFocus() && activeChatUserId && (activeChatUserId === chatDocId || getChatId(activeChatUserId) === chatDocId);
+            if (!isCurrentlyReading) {
+                const title = `Message from ${senderName}`;
+                const options = {
+                    body: text,
+                    icon: 'favicon.png',
+                    tag: 'volga-chat-msg',
+                    renotify: true
+                };
+                try {
+                    new Notification(title, options);
+                } catch (e) {
+                    console.error("Failed to trigger browser notification:", e);
+                }
+            }
+        }
     }
 
     // 5. User Roster loading
@@ -1071,11 +1152,24 @@
             firestoreMetadataListener = activeDb.collection('chats')
                 .where('participants', 'array-contains', currentUserId)
                 .onSnapshot(snapshot => {
+                    snapshot.docChanges().forEach(change => {
+                        if (change.type === 'modified') {
+                            const data = change.doc.data();
+                            if (data.lastSenderId && data.lastSenderId !== currentUserId && data.lastSenderId !== 'system') {
+                                const senderName = usersList.find(u => u.id === data.lastSenderId)?.displayName || (data.lastSenderId === 'adminvolga' ? 'Admin' : data.lastSenderId);
+                                showWebNotification(senderName, data.lastMessage, change.doc.id);
+                            }
+                        }
+                    });
+
                     snapshot.forEach(doc => {
                         chatMetadata[doc.id] = doc.data();
                     });
                     renderInboxList();
                     updateGlobalUnreadBadge();
+                    if (activeChatUserId) {
+                        renderMessages(activeChatMessages);
+                    }
                 }, error => {
                     console.error("Firestore chat metadata sync failed:", error);
                     renderInboxList(); // Render roster as fail-safe fallback
@@ -1086,6 +1180,125 @@
             window.addEventListener('storage', handleLocalStorageEvent);
             renderInboxList();
             updateGlobalUnreadBadge();
+        }
+    }
+
+    // Update current user's presence/last active time
+    function updateMyPresence() {
+        const timestamp = new Date().toISOString();
+        if (activeDb) {
+            try {
+                activeDb.collection('users').doc(currentUserId).set({
+                    lastActive: timestamp
+                }, { merge: true });
+            } catch (e) {
+                console.error("Failed to update user presence in Firestore:", e);
+            }
+        } else {
+            // Local storage fallback
+            try {
+                const storedUsers = localStorage.getItem('engineTrackerUsers');
+                if (storedUsers) {
+                    const users = JSON.parse(storedUsers);
+                    const me = users.find(u => u.id === currentUserId);
+                    if (me) {
+                        me.lastActive = timestamp;
+                        localStorage.setItem('engineTrackerUsers', JSON.stringify(users));
+                    }
+                }
+            } catch (e) {
+                console.error("Failed to update user presence locally:", e);
+            }
+        }
+    }
+
+    // Initialize live presence sync for roster users
+    function initUsersLiveSync() {
+        if (activeDb) {
+            if (firestoreUsersListener) firestoreUsersListener();
+            
+            firestoreUsersListener = activeDb.collection('users').onSnapshot(snapshot => {
+                const loadedUsers = [];
+                snapshot.forEach(doc => {
+                    loadedUsers.push({
+                        id: doc.id,
+                        displayName: doc.data().displayName || doc.id,
+                        role: doc.data().role || 'user',
+                        lastActive: doc.data().lastActive || null
+                    });
+                });
+                processLoadedUsers(loadedUsers);
+            }, error => {
+                console.error("Firestore users live sync failed:", error);
+            });
+        } else {
+            // Local Storage mode: listen to storage changes for 'engineTrackerUsers'
+            window.addEventListener('storage', (e) => {
+                if (e.key === 'engineTrackerUsers') {
+                    loadLocalUsersRoster();
+                }
+            });
+        }
+    }
+
+    function processLoadedUsers(loadedUsers) {
+        usersList = loadedUsers.filter(u => u.id !== currentUserId);
+
+        if (currentUserId !== 'adminvolga' && !usersList.find(u => u.id === 'adminvolga')) {
+            usersList.unshift({
+                id: 'adminvolga',
+                displayName: 'Admin',
+                role: 'admin',
+                lastActive: chatMetadata[getChatId('adminvolga')]?.lastActive?.['adminvolga'] || null
+            });
+        }
+        
+        renderInboxList();
+        
+        if (activeChatUserId) {
+            renderMessages(activeChatMessages);
+        }
+    }
+
+    async function loadLocalUsersRoster() {
+        const storedUsers = localStorage.getItem('engineTrackerUsers');
+        const raw = storedUsers ? JSON.parse(storedUsers) : [];
+        const loadedUsers = raw.map(u => typeof u === 'string' ? { id: u, displayName: u, role: 'user', lastActive: null } : { role: 'user', ...u });
+        processLoadedUsers(loadedUsers);
+    }
+
+    async function updateMyLastRead(targetUserId) {
+        const chatId = getChatId(targetUserId);
+        
+        let latestTimestamp = new Date().toISOString();
+        if (activeChatMessages && activeChatMessages.length > 0) {
+            const latestMsg = activeChatMessages[activeChatMessages.length - 1];
+            if (latestMsg.timestamp) {
+                latestTimestamp = latestMsg.timestamp.toDate ? latestMsg.timestamp.toDate().toISOString() : new Date(latestMsg.timestamp).toISOString();
+            }
+        }
+
+        if (activeDb) {
+            try {
+                const ref = activeDb.collection('chats').doc(chatId);
+                const updateObj = {};
+                updateObj[`lastRead.${currentUserId}`] = latestTimestamp;
+                updateObj[`unreadCount.${currentUserId}`] = 0;
+                await ref.update(updateObj);
+            } catch (e) {
+                console.error("Failed to update lastRead on active chat:", e);
+            }
+        } else {
+            // Local Storage
+            if (chatMetadata[chatId]) {
+                if (!chatMetadata[chatId].lastRead) chatMetadata[chatId].lastRead = {};
+                chatMetadata[chatId].lastRead[currentUserId] = latestTimestamp;
+                
+                if (!chatMetadata[chatId].unreadCount) chatMetadata[chatId].unreadCount = {};
+                chatMetadata[chatId].unreadCount[currentUserId] = 0;
+                
+                saveLocalMetadata();
+            }
         }
     }
 
@@ -1110,11 +1323,28 @@
 
     function handleLocalStorageEvent(e) {
         if (e.key === 'volga_chat_metadata') {
+            const oldMetadata = { ...chatMetadata };
             loadLocalMetadata();
             renderInboxList();
             updateGlobalUnreadBadge();
+            if (activeChatUserId) {
+                renderMessages(activeChatMessages);
+            }
+            
+            // Trigger notifications for new messages in LocalStorage mode
+            Object.keys(chatMetadata).forEach(cId => {
+                const newMeta = chatMetadata[cId];
+                const oldMeta = oldMetadata[cId];
+                if (newMeta && newMeta.lastSenderId && newMeta.lastSenderId !== currentUserId && newMeta.lastSenderId !== 'system') {
+                    if (!oldMeta || oldMeta.lastUpdated !== newMeta.lastUpdated) {
+                        const senderName = usersList.find(u => u.id === newMeta.lastSenderId)?.displayName || (newMeta.lastSenderId === 'adminvolga' ? 'Admin' : newMeta.lastSenderId);
+                        showWebNotification(senderName, newMeta.lastMessage, cId);
+                    }
+                }
+            });
         } else if (activeChatUserId && e.key === `volga_chat_messages_${getChatId(activeChatUserId)}`) {
             streamLocalMessages();
+            updateMyLastRead(activeChatUserId);
         }
     }
 
@@ -1780,7 +2010,14 @@
                     if (doc.exists) {
                         const currentUnreads = doc.data().unreadCount || {};
                         currentUnreads[currentUserId] = 0;
-                        transaction.update(ref, { unreadCount: currentUnreads });
+                        
+                        const currentLastRead = doc.data().lastRead || {};
+                        currentLastRead[currentUserId] = doc.data().lastUpdated || new Date().toISOString();
+                        
+                        transaction.update(ref, { 
+                            unreadCount: currentUnreads,
+                            lastRead: currentLastRead
+                        });
                     }
                 });
             } catch(e) {
@@ -1791,6 +2028,10 @@
             if (chatMetadata[chatId]) {
                 if (!chatMetadata[chatId].unreadCount) chatMetadata[chatId].unreadCount = {};
                 chatMetadata[chatId].unreadCount[currentUserId] = 0;
+                
+                if (!chatMetadata[chatId].lastRead) chatMetadata[chatId].lastRead = {};
+                chatMetadata[chatId].lastRead[currentUserId] = chatMetadata[chatId].lastUpdated || new Date().toISOString();
+                
                 saveLocalMetadata();
                 renderInboxList();
             }
@@ -1818,7 +2059,15 @@
                         data.id = doc.id;
                         messages.push(data);
                     });
+                    activeChatMessages = messages;
                     renderMessages(messages);
+                    
+                    if (messages.length > 0) {
+                        const latestMsg = messages[messages.length - 1];
+                        if (latestMsg.senderId !== currentUserId) {
+                            updateMyLastRead(targetUserId);
+                        }
+                    }
                 }, error => {
                     console.error("Firestore messages stream error:", error);
                     container.innerHTML = `<div style="text-align:center;padding:20px;color:#ef4444;font-size:0.8rem;">Failed to load messages.</div>`;
@@ -1835,9 +2084,80 @@
         try {
             const data = localStorage.getItem(`volga_chat_messages_${chatId}`);
             const messages = data ? JSON.parse(data) : [];
+            activeChatMessages = messages;
             renderMessages(messages);
         } catch(e) {
             console.error(e);
+        }
+    }
+
+    function getTickHtml(msg) {
+        const chatId = getChatId(activeChatUserId);
+        const meta = chatMetadata[chatId];
+        
+        if (!meta) {
+            return `
+                <span class="volga-chat-tick" style="color: rgba(255, 255, 255, 0.65); display: inline-flex; align-items: center;" title="Sent">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="20 6 9 17 4 12"></polyline>
+                    </svg>
+                </span>
+            `;
+        }
+
+        const recipients = (meta.participants || [currentUserId, activeChatUserId]).filter(id => id !== currentUserId);
+        if (recipients.length === 0) return '';
+
+        let messageMs = Date.now();
+        if (msg.timestamp) {
+            messageMs = msg.timestamp.toDate ? msg.timestamp.toDate().getTime() : new Date(msg.timestamp).getTime();
+        }
+
+        let readCount = 0;
+        let deliveredCount = 0;
+
+        recipients.forEach(rId => {
+            const lastRead = meta.lastRead?.[rId];
+            const readMs = lastRead ? new Date(lastRead).getTime() : 0;
+            if (readMs >= messageMs) {
+                readCount++;
+                deliveredCount++;
+            } else {
+                const user = usersList.find(u => u.id === rId);
+                const activeMs = (user && user.lastActive) ? new Date(user.lastActive).getTime() : 0;
+                if (activeMs >= messageMs) {
+                    deliveredCount++;
+                }
+            }
+        });
+
+        const isRead = readCount === recipients.length;
+        const isDelivered = deliveredCount === recipients.length;
+
+        if (isRead) {
+            return `
+                <span class="volga-chat-tick" style="color: #38bdf8; display: inline-flex; align-items: center;" title="Read">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M1 12l5 5L15 5M9 12l5 5L23 5" />
+                    </svg>
+                </span>
+            `;
+        } else if (isDelivered) {
+            return `
+                <span class="volga-chat-tick" style="color: rgba(255, 255, 255, 0.7); display: inline-flex; align-items: center;" title="Delivered">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M1 12l5 5L15 5M9 12l5 5L23 5" />
+                    </svg>
+                </span>
+            `;
+        } else {
+            return `
+                <span class="volga-chat-tick" style="color: rgba(255, 255, 255, 0.7); display: inline-flex; align-items: center;" title="Sent">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="20 6 9 17 4 12"></polyline>
+                    </svg>
+                </span>
+            `;
         }
     }
 
@@ -1935,12 +2255,19 @@
                             </div>
                         ` : ''}
                         
-                        <div class="volga-chat-msg-bubble" style="${isMe ? 'cursor:pointer;' : ''}">
-                            ${bubbleContentHtml}
-                            ${msg.edited ? `<span style="font-size:0.6rem;opacity:0.6;font-style:italic;margin-left:4px;display:inline-block;">(edited)</span>` : ''}
+                        <div class="volga-chat-msg-bubble" style="${isMe ? 'cursor:pointer;' : ''} display: flex; flex-direction: column;">
+                            <div class="volga-chat-msg-text">
+                                ${bubbleContentHtml}
+                                ${msg.edited ? `<span style="font-size:0.6rem;opacity:0.6;font-style:italic;margin-left:4px;display:inline-block;">(edited)</span>` : ''}
+                            </div>
+                            ${isGrouped ? '' : `
+                            <div class="volga-chat-msg-meta" style="display: flex; align-items: center; justify-content: flex-end; gap: 4px; font-size: 0.62rem; margin-top: 3px; color: ${isMe ? 'rgba(255, 255, 255, 0.7)' : 'var(--text-muted)'}; line-height: 1; align-self: flex-end;">
+                                <span>${timeStr}</span>
+                                ${isMe ? getTickHtml(msg) : ''}
+                            </div>
+                            `}
                         </div>
                     </div>
-                    ${isGrouped ? '' : `<div class="volga-chat-msg-time">${timeStr}</div>`}
                 </div>
             `;
         });
@@ -1975,7 +2302,8 @@
                     dropdown.style.display = 'none';
                     
                     // Get current text
-                    const originalText = bubble.innerText.replace(/\s*\(edited\)$/, '');
+                    const textEl = bubble.querySelector('.volga-chat-msg-text');
+                    const originalText = textEl ? textEl.innerText.replace(/\s*\(edited\)$/, '') : bubble.innerText.replace(/\s*\(edited\)$/, '');
                     
                     // Replace bubble HTML with edit panel
                     bubble.style.cursor = 'default';

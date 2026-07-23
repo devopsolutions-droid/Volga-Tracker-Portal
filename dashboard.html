@@ -3429,9 +3429,12 @@ async function loadUsers() {
 }
 
 function renderAuthUsers() {
+    // Exclude the primary adminvolga account from the UI user list to prevent accidental changes
+    const displayUsers = authUsers.filter(u => u.id !== 'adminvolga');
+
     // Update badge count
     const badge = document.getElementById('users-count-badge');
-    if (badge) badge.textContent = authUsers.length + ' User' + (authUsers.length !== 1 ? 's' : '');
+    if (badge) badge.textContent = displayUsers.length + ' User' + (displayUsers.length !== 1 ? 's' : '');
 
     const grid = document.getElementById("auth-users-grid");
     if (!grid) return;
@@ -3444,10 +3447,10 @@ function renderAuthUsers() {
         ...getProjectRegistry().map(p => ({ id: p.id, name: p.name }))
     ];
 
-    if (authUsers.length === 0) {
+    if (displayUsers.length === 0) {
         grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;color:#94a3b8;padding:10px;">No users authorized yet.</div>`;
     } else {
-        authUsers.forEach(u => {
+        displayUsers.forEach(u => {
             const isVisible = visibleUserIds.has(u.id);
             const dateStr = u.createdAt ? new Date(u.createdAt).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' }) : 'Initial';
             const assignedProjects = u.assignedProjects || [];
@@ -3539,6 +3542,7 @@ function renderAuthUsers() {
 }
 
 async function toggleProjectAccess(userId, projectId, granted) {
+    if (userId === 'adminvolga') return;
     const user = authUsers.find(u => u.id === userId);
     if (!user) return;
     let assigned = [...(user.assignedProjects || [])];
@@ -3550,6 +3554,7 @@ async function toggleProjectAccess(userId, projectId, granted) {
 }
 
 async function toggleClonedAccess(userId, hasAccess) {
+    if (userId === 'adminvolga') return;
     await dbHelper.updateUserClonedAccess(userId, hasAccess);
     const user = authUsers.find(u => u.id === userId);
     if (user) {
@@ -3577,6 +3582,7 @@ function cancelEditDisplayName(userId) {
 }
 
 async function saveDisplayName(userId) {
+    if (userId === 'adminvolga') return;
     const input = document.getElementById(`user-edit-input-${userId}`);
     if (!input) return;
     const newName = input.value.trim();
@@ -3605,6 +3611,10 @@ async function addAuthUser() {
 
 async function removeAuthUser(userId) {
     if (userRole !== 'admin') return;
+    if (userId === 'adminvolga') {
+        showCustomAlert('Access Denied', 'The primary administrator account cannot be deleted or revoked.', true);
+        return;
+    }
     const user = authUsers.find(u => u.id === userId);
     const label = user ? user.displayName : userId;
     const confirmed = await showCustomConfirm(
