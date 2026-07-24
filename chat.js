@@ -2871,11 +2871,26 @@
         
         if (activeDb) {
             try {
-                const msgRef = activeDb.collection('chats').doc(chatId).collection('messages').doc(msgId);
+                const chatRef = activeDb.collection('chats').doc(chatId);
+                const msgRef = chatRef.collection('messages').doc(msgId);
+
+                // Update the message itself
                 await msgRef.update({
                     text: newText,
                     edited: true
                 });
+
+                // If this was the last message, update the snippet too
+                const chatDoc = await chatRef.get();
+                if (chatDoc.exists && chatDoc.data().lastSenderId === currentUserId) {
+                    // Check if the last message doc matches this msgId by verifying lastUpdated proximity
+                    // Simplest reliable check: re-query latest message and compare
+                    const latestSnap = await chatRef.collection('messages')
+                        .orderBy('timestamp', 'desc').limit(1).get();
+                    if (!latestSnap.empty && latestSnap.docs[0].id === msgId) {
+                        await chatRef.update({ lastMessage: newText });
+                    }
+                }
             } catch(e) {
                 console.error("Failed to update message in Firestore:", e);
             }
@@ -2891,6 +2906,14 @@
                         msg.text = newText;
                         msg.edited = true;
                         localStorage.setItem(messagesKey, JSON.stringify(messages));
+
+                        // If this was the last message, update snippet
+                        const lastMsg = messages[messages.length - 1];
+                        if (lastMsg && lastMsg.id === msgId && chatMetadata[chatId]) {
+                            chatMetadata[chatId].lastMessage = newText;
+                            saveLocalMetadata();
+                            renderInboxList();
+                        }
                         streamLocalMessages();
                     }
                 }
@@ -2905,8 +2928,27 @@
 
         if (activeDb) {
             try {
-                const msgRef = activeDb.collection('chats').doc(chatId).collection('messages').doc(msgId);
+                const chatRef = activeDb.collection('chats').doc(chatId);
+                const msgRef = chatRef.collection('messages').doc(msgId);
                 await msgRef.delete();
+
+                // Re-query the new latest message and update the snippet
+                const latestSnap = await chatRef.collection('messages')
+                    .orderBy('timestamp', 'desc').limit(1).get();
+                if (!latestSnap.empty) {
+                    const latestData = latestSnap.docs[0].data();
+                    await chatRef.update({
+                        lastMessage: latestData.text || (latestData.attachment ? `📷 Shared a file: ${latestData.attachment.name}` : ''),
+                        lastSenderId: latestData.senderId || '',
+                        lastUpdated: latestData.timestamp?.toDate?.()?.toISOString?.() || new Date().toISOString()
+                    });
+                } else {
+                    // No messages left — clear the snippet
+                    await chatRef.update({
+                        lastMessage: '',
+                        lastSenderId: '',
+                    });
+                }
             } catch(e) {
                 console.error("Failed to delete message in Firestore:", e);
             }
@@ -2919,6 +2961,18 @@
                     let messages = JSON.parse(storedMsgs);
                     messages = messages.filter(m => m.id !== msgId);
                     localStorage.setItem(messagesKey, JSON.stringify(messages));
+
+                    // Update the snippet to the new last message
+                    if (chatMetadata[chatId]) {
+                        const lastMsg = messages[messages.length - 1];
+                        chatMetadata[chatId].lastMessage = lastMsg
+                            ? (lastMsg.text || (lastMsg.attachment ? `📷 Shared a file: ${lastMsg.attachment.name}` : ''))
+                            : '';
+                        chatMetadata[chatId].lastSenderId = lastMsg?.senderId || '';
+                        chatMetadata[chatId].lastUpdated = lastMsg?.timestamp || chatMetadata[chatId].lastUpdated;
+                        saveLocalMetadata();
+                        renderInboxList();
+                    }
                     streamLocalMessages();
                 }
             } catch(e) {
