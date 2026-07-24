@@ -14,7 +14,12 @@
     if (!currentUserId) {
         currentUserId = (userRole === 'admin' ? 'adminvolga' : '');
     }
-    const currentUserDisplayName = sessionStorage.getItem('username') || (userRole === 'admin' ? 'Admin' : 'Unknown');
+    let rawUsername = sessionStorage.getItem('username');
+    if (userRole === 'admin' || currentUserId === 'adminvolga' || rawUsername === 'adminvolga' || rawUsername === 'Admin') {
+        rawUsername = 'ADMIN';
+        sessionStorage.setItem('username', 'ADMIN');
+    }
+    const currentUserDisplayName = rawUsername || (userRole === 'admin' ? 'ADMIN' : 'Unknown');
 
     if (!currentUserId) {
         console.warn("Chat module loaded but current user ID could not be identified.");
@@ -1617,6 +1622,13 @@
                 }
             }
 
+            // Ensure any admin entry or 'adminvolga' entry in roster has display name 'ADMIN'
+            loadedUsers.forEach(u => {
+                if (u.id === 'adminvolga' || u.role === 'admin' || u.displayName === 'Admin' || u.displayName === 'adminvolga') {
+                    u.displayName = 'ADMIN';
+                }
+            });
+
             // Exclude current user from roster
             usersList = loadedUsers.filter(u => u.id !== currentUserId);
 
@@ -1624,7 +1636,7 @@
             if (currentUserId !== 'adminvolga' && !usersList.find(u => u.id === 'adminvolga')) {
                 usersList.unshift({
                     id: 'adminvolga',
-                    displayName: 'Admin',
+                    displayName: 'ADMIN',
                     role: 'admin'
                 });
             }
@@ -1652,7 +1664,7 @@
                         if (change.type === 'modified') {
                             const data = change.doc.data();
                             if (data.lastSenderId && data.lastSenderId !== currentUserId && data.lastSenderId !== 'system') {
-                                const senderName = usersList.find(u => u.id === data.lastSenderId)?.displayName || (data.lastSenderId === 'adminvolga' ? 'Admin' : data.lastSenderId);
+                                const senderName = usersList.find(u => u.id === data.lastSenderId)?.displayName || (data.lastSenderId === 'adminvolga' ? 'ADMIN' : data.lastSenderId);
                                 showWebNotification(senderName, data.lastMessage, change.doc.id);
                             }
                         }
@@ -1738,12 +1750,17 @@
     }
 
     function processLoadedUsers(loadedUsers) {
+        loadedUsers.forEach(u => {
+            if (u.id === 'adminvolga' || u.role === 'admin' || u.displayName === 'Admin' || u.displayName === 'adminvolga') {
+                u.displayName = 'ADMIN';
+            }
+        });
         usersList = loadedUsers.filter(u => u.id !== currentUserId);
 
         if (currentUserId !== 'adminvolga' && !usersList.find(u => u.id === 'adminvolga')) {
             usersList.unshift({
                 id: 'adminvolga',
-                displayName: 'Admin',
+                displayName: 'ADMIN',
                 role: 'admin',
                 lastActive: chatMetadata[getChatId('adminvolga')]?.lastActive?.['adminvolga'] || null
             });
@@ -1833,7 +1850,7 @@
                 const oldMeta = oldMetadata[cId];
                 if (newMeta && newMeta.lastSenderId && newMeta.lastSenderId !== currentUserId && newMeta.lastSenderId !== 'system') {
                     if (!oldMeta || oldMeta.lastUpdated !== newMeta.lastUpdated) {
-                        const senderName = usersList.find(u => u.id === newMeta.lastSenderId)?.displayName || (newMeta.lastSenderId === 'adminvolga' ? 'Admin' : newMeta.lastSenderId);
+                        const senderName = usersList.find(u => u.id === newMeta.lastSenderId)?.displayName || (newMeta.lastSenderId === 'adminvolga' ? 'ADMIN' : newMeta.lastSenderId);
                         showWebNotification(senderName, newMeta.lastMessage, cId);
                     }
                 }
@@ -1928,7 +1945,7 @@
                         lastSender = '';
                     } else {
                         const senderUser = usersList.find(u => u.id === item.lastSenderId);
-                        const senderName = senderUser ? senderUser.displayName : (item.lastSenderId === 'adminvolga' ? 'Admin' : item.lastSenderId);
+                        const senderName = senderUser ? senderUser.displayName : (item.lastSenderId === 'adminvolga' ? 'ADMIN' : item.lastSenderId);
                         lastSender = `${senderName}: `;
                     }
                 }

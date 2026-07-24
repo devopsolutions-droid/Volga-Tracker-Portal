@@ -401,7 +401,8 @@
             if (userid === 'adminvolga' && pass === 'enginevradmin') {
                 sessionStorage.setItem('loggedIn', 'true');
                 sessionStorage.setItem('role', 'admin');
-                sessionStorage.setItem('username', userid);
+                sessionStorage.setItem('username', 'ADMIN');
+                sessionStorage.setItem('userid', 'adminvolga');
                 
                 window.location.href = 'dashboard.html';
             } else {
