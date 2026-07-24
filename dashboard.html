@@ -3370,8 +3370,8 @@ async function loadUsers() {
 }
 
 function renderAuthUsers() {
-    // Exclude the primary adminvolga account from the UI user list to prevent accidental changes
-    const displayUsers = authUsers.filter(u => u.id !== 'adminvolga');
+    // Exclude the primary adminvolga account and any admin role from the UI user list to prevent accidental changes
+    const displayUsers = authUsers.filter(u => u.id !== 'adminvolga' && u.role !== 'admin' && u.displayName !== 'ADMIN');
 
     // Update badge count
     const badge = document.getElementById('users-count-badge');
@@ -4422,13 +4422,14 @@ function renderDlProjectList() {
 function renderDlUserList() {
     const list = document.getElementById('dl-user-list');
     if (!list) return;
-    if (!authUsers || authUsers.length === 0) {
+    const regularUsers = authUsers.filter(u => u.id !== 'adminvolga' && u.role !== 'admin' && u.displayName !== 'ADMIN');
+    if (!regularUsers || regularUsers.length === 0) {
         list.innerHTML = '<div style="padding:10px 13px;font-size:0.82rem;color:var(--text-muted);">No users found.</div>';
         return;
     }
     const dlSvg  = `<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg>`;
     const pdfSvg = `<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>`;
-    list.innerHTML = authUsers.map(u => `
+    list.innerHTML = regularUsers.map(u => `
         <div class="dl-item-row">
             <span class="dl-swatch" style="background:#3b82f6;"></span>
             <span class="dl-item-name">${u.displayName || u.id}<span class="dl-item-meta">${u.role || 'user'}</span></span>
@@ -4619,7 +4620,8 @@ async function downloadAllUsersCSV() {
     const wids=[4,18,10,18,30,16,14,12,16,40]; const M=hdrs.length;
     const ws={}; ws['!merges']=[]; let R=0, gtotal=0, gdone=0, gprog=0;
     const userSections=[];
-    for(const u of authUsers){const dn=u.displayName||u.id;const uRows=[];for(const p of projects){const recs=await getDlRecordsAsync(p);recs.filter(r=>r.user===dn).forEach(r=>uRows.push([dn,u.role||'user',p.name,taskName(r),statusXL(r.status).label,fmtDate(r.assigned),fmtDate(r.target),fmtDate(r.completion),taskRemarks(r)]));} if(uRows.length){gtotal+=uRows.length;gdone+=uRows.filter(r=>r[4].startsWith('✓')).length;gprog+=uRows.filter(r=>r[4].startsWith('→')).length;userSections.push({name:dn,rows:uRows});}}
+    const regularUsers = authUsers.filter(u => u.id !== 'adminvolga' && u.role !== 'admin' && u.displayName !== 'ADMIN');
+    for(const u of regularUsers){const dn=u.displayName||u.id;const uRows=[];for(const p of projects){const recs=await getDlRecordsAsync(p);recs.filter(r=>r.user===dn).forEach(r=>uRows.push([dn,u.role||'user',p.name,taskName(r),statusXL(r.status).label,fmtDate(r.assigned),fmtDate(r.target),fmtDate(r.completion),taskRemarks(r)]));} if(uRows.length){gtotal+=uRows.length;gdone+=uRows.filter(r=>r[4].startsWith('✓')).length;gprog+=uRows.filter(r=>r[4].startsWith('→')).length;userSections.push({name:dn,rows:uRows});}}
     const gns=gtotal-gdone-gprog, gpct=gtotal?Math.round(gdone/gtotal*100):0;
     const summ=[{label:'TOTAL',val:gtotal,bg:'EFF6FF',fg:'1E293B'},{label:'COMPLETED',val:gdone,bg:'D1FAE5',fg:'065F46'},{label:'IN PROGRESS',val:gprog,bg:'DBEAFE',fg:'1E40AF'},{label:'NOT STARTED',val:gns,bg:'FEF3C7',fg:'92400E'},{label:'DONE %',val:gpct+'%',bg:'F5F3FF',fg:'5B21B6'}];
     ws[XLSX.utils.encode_cell({r:R,c:0})]=xlCell('Volga Infosys — All Users Summary',true,'1E293B','#FFFFFF'); ws[XLSX.utils.encode_cell({r:R,c:0})].s.font={name:'Calibri',sz:13,bold:true,color:{rgb:'FFFFFF'}}; ws[XLSX.utils.encode_cell({r:R,c:0})].s.fill={fgColor:{rgb:'1E293B'},patternType:'solid'};
@@ -5331,7 +5333,7 @@ function triggerPDF(htmlContent, filename){
                             </div>
                             <div style="flex:1.2; font-size:9px; color:#475569; line-height:1.8;">
                                 <div style="font-weight:700; color:#1e293b; margin-bottom:4px; text-transform:uppercase;">Team Metrics</div>
-                                <div>Total Members: <strong>${authUsers.length}</strong></div>
+                                <div>Total Members: <strong>${authUsers.filter(u => u.id !== 'adminvolga' && u.role !== 'admin' && u.displayName !== 'ADMIN').length}</strong></div>
                                 <div>Task Assignments: <strong>${total}</strong></div>
                                 <div>Milestones Reached: <strong>${done}</strong></div>
                             </div>
@@ -5486,7 +5488,8 @@ function populatePersonalUserDropdown() {
     const sel = document.getElementById('personal-ann-user-select');
     if (!sel) return;
     sel.innerHTML = '<option value="">Select user...</option>';
-    authUsers.filter(u => u.role !== 'admin').forEach(u => {
+    const myId = sessionStorage.getItem('userid') || 'adminvolga';
+    authUsers.filter(u => u.id !== 'adminvolga' && u.id !== myId && u.role !== 'admin' && u.displayName !== 'ADMIN').forEach(u => {
         const opt = document.createElement('option');
         opt.value = u.id;
         opt.textContent = u.displayName;
