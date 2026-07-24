@@ -99,21 +99,61 @@
             text-decoration: none;
             display: inline-flex;
             align-items: center;
-            gap: 6px;
-            padding: 8px 16px;
-            border: 1px solid #e2e8f0;
-            color: #475569;
+            gap: 8px;
+            padding: 7px 16px 7px 12px;
+            background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+            border: 1.5px solid #cbd5e1;
+            color: #1e293b;
             font-weight: 600;
-            font-size: 0.9rem;
-            border-radius: 8px;
-            transition: all 0.2s;
-            background: #ffffff;
+            font-size: 0.88rem;
+            border-radius: 10px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+            transition: all 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            cursor: pointer;
+        }
+
+        .btn-nav-dashboard-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 26px;
+            height: 26px;
+            border-radius: 6px;
+            background: rgba(16, 185, 129, 0.1);
+            color: #059669;
+            transition: all 0.22s ease;
         }
 
         .btn-nav-dashboard:hover {
-            border-color: var(--primary);
-            color: var(--primary);
-            background: color-mix(in srgb, var(--primary) 4%, #fff);
+            border-color: #10b981;
+            color: #047857;
+            background: #ffffff;
+            box-shadow: 0 4px 14px rgba(16, 185, 129, 0.18), 0 1px 3px rgba(0, 0, 0, 0.05);
+            transform: translateY(-1.5px);
+        }
+
+        .btn-nav-dashboard:hover .btn-nav-dashboard-icon {
+            background: #10b981;
+            color: #ffffff;
+            transform: scale(1.06);
+        }
+
+        .btn-nav-dashboard .btn-nav-arrow {
+            opacity: 0.45;
+            transition: transform 0.22s ease, opacity 0.22s ease;
+            margin-left: 1px;
+        }
+
+        .btn-nav-dashboard:hover .btn-nav-arrow {
+            opacity: 1;
+            transform: translateX(3px);
+            color: #10b981;
+        }
+
+        .btn-nav-dashboard:active {
+            transform: translateY(0) scale(0.97);
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
         }
 
         .user-profile-pill {
@@ -1676,18 +1716,19 @@
                     style="font-size: 0.75rem; font-weight: bold; padding: 4px 8px; border-radius: 12px; margin-left: 15px; display: inline-flex; align-items: center; gap: 5px;"></span>
             </div>
             <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap; justify-content: center;">
-                <a href="dashboard.html"
-                    style="text-decoration: none; display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; border: 1.5px solid #0d2f5f; color: #0d2f5f; font-weight: 600; font-size: 0.9rem; border-radius: 8px; transition: all 0.2s; background: transparent;"
-                    onmouseover="this.style.background='#0d2f5f'; this.style.color='#fff';"
-                    onmouseout="this.style.background='transparent'; this.style.color='#0d2f5f';">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
-                        stroke-linecap="round" stroke-linejoin="round">
-                        <rect x="3" y="3" width="7" height="7"></rect>
-                        <rect x="14" y="3" width="7" height="7"></rect>
-                        <rect x="14" y="14" width="7" height="7"></rect>
-                        <rect x="3" y="14" width="7" height="7"></rect>
-                    </svg>
+                <a href="dashboard.html" class="btn-nav-dashboard" title="Return to Volga Project Dashboard">
+                    <div class="btn-nav-dashboard-icon">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="3" width="7" height="7" rx="1.5"></rect>
+                            <rect x="14" y="3" width="7" height="7" rx="1.5"></rect>
+                            <rect x="14" y="14" width="7" height="7" rx="1.5"></rect>
+                            <rect x="3" y="14" width="7" height="7" rx="1.5"></rect>
+                        </svg>
+                    </div>
                     <span>Dashboard</span>
+                    <svg class="btn-nav-arrow" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M5 12h14M12 5l7 7-7 7"/>
+                    </svg>
                 </a>
                 <div id="user-info" class="user-profile-pill" style="display: none;">
                     <div class="user-avatar" id="user-avatar-char">-</div>
@@ -2254,7 +2295,10 @@
                 <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="#dc3545" stroke-width="1.5" style="margin-bottom:20px;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
                 <h2 style="color:#0d2f5f;margin:0 0 10px;font-size:1.6rem;font-weight:800;">Access Denied</h2>
                 <p style="color:#666;font-size:1rem;margin:0 0 24px;max-width:360px;">You don't have access to the <strong>GutFeeling</strong> project. Contact an admin to request access.</p>
-                <a href="dashboard.html" style="padding:10px 24px;background:#10b981;color:#fff;border-radius:8px;text-decoration:none;font-weight:600;font-size:0.95rem;">← Back to Dashboard</a>
+                <a href="dashboard.html" style="display:inline-flex;align-items:center;gap:8px;padding:10px 22px;background:#10b981;color:#fff;border-radius:10px;text-decoration:none;font-weight:600;font-size:0.95rem;box-shadow:0 4px 14px rgba(16,185,129,0.3);transition:all 0.2s ease;">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+                    <span>Back to Dashboard</span>
+                </a>
             </div>`;
                     return;
                 }
