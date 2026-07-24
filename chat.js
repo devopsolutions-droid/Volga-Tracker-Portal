@@ -524,6 +524,10 @@
             border-radius: 16px;
             word-break: break-word;
         }
+        .volga-chat-msg-text {
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
         .volga-chat-msg-bubble-row.me .volga-chat-msg-bubble {
             background: linear-gradient(135deg, var(--primary, #3b82f6) 0%, #1d4ed8 100%);
             color: white;
@@ -579,14 +583,21 @@
         }
         .volga-chat-input {
             flex: 1;
-            padding: 8px 16px;
+            padding: 8px 14px;
             border: 1px solid rgba(226, 232, 240, 0.8);
-            border-radius: 20px;
+            border-radius: 18px;
             font-size: 0.82rem;
             outline: none;
-            background: rgba(255, 255, 255, 0.8);
+            background: rgba(255, 255, 255, 0.95);
             transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
             font-family: inherit;
+            resize: none;
+            height: 38px;
+            min-height: 38px;
+            max-height: 110px;
+            line-height: 1.4;
+            box-sizing: border-box;
+            overflow-y: auto;
         }
         .volga-chat-input:focus {
             border-color: var(--primary, #3b82f6);
@@ -1302,7 +1313,7 @@
                             </svg>
                         </label>
                         <input type="file" id="volga-chat-attach-input" style="display:none;" accept="image/*,application/pdf">
-                        <input type="text" id="volga-chat-input" class="volga-chat-input" placeholder="Type a message..." autocomplete="off">
+                        <textarea id="volga-chat-input" class="volga-chat-input" placeholder="Type a message..." rows="1" autocomplete="off"></textarea>
                         <button id="volga-chat-send" class="volga-chat-send-btn" title="Send message">
                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                                 <line x1="22" y1="2" x2="11" y2="13"></line>
@@ -1395,7 +1406,9 @@
         document.getElementById('volga-chat-close').addEventListener('click', toggleChatPanel);
         document.getElementById('volga-chat-back').addEventListener('click', closeActiveChatWindow);
         document.getElementById('volga-chat-send').addEventListener('click', handleSendClick);
-        document.getElementById('volga-chat-input').addEventListener('keydown', handleInputKeydown);
+        const chatInputEl = document.getElementById('volga-chat-input');
+        chatInputEl.addEventListener('keydown', handleInputKeydown);
+        chatInputEl.addEventListener('input', function() { autoResizeChatInput(this); });
         document.getElementById('volga-chat-search').addEventListener('input', handleSearchInput);
 
         const backdrop = document.getElementById('volga-chat-backdrop');
@@ -2771,10 +2784,7 @@
                         ` : ''}
                         
                         <div class="volga-chat-msg-bubble" style="${isMe ? 'cursor:pointer;' : ''} display: flex; flex-direction: column;">
-                            <div class="volga-chat-msg-text">
-                                ${bubbleContentHtml}
-                                ${msg.edited ? `<span style="font-size:0.6rem;opacity:0.6;font-style:italic;margin-left:4px;display:inline-block;">(edited)</span>` : ''}
-                            </div>
+                            <div class="volga-chat-msg-text">${bubbleContentHtml}${msg.edited ? `<span style="font-size:0.6rem;opacity:0.6;font-style:italic;margin-left:4px;display:inline-block;">(edited)</span>` : ''}</div>
                             ${isGrouped ? '' : `
                             <div class="volga-chat-msg-meta" style="display: flex; align-items: center; justify-content: flex-end; gap: 4px; font-size: 0.62rem; margin-top: 3px; color: ${isMe ? 'rgba(255, 255, 255, 0.7)' : 'var(--text-muted)'}; line-height: 1; align-self: flex-end;">
                                 <span>${timeStr}</span>
@@ -3150,6 +3160,7 @@
         if (!text || !activeChatUserId) return;
 
         input.value = ''; // Reset input field
+        input.style.height = '38px'; // Reset height
 
         const chatId = getChatId(activeChatUserId);
         const timestamp = new Date().toISOString();
@@ -3257,9 +3268,29 @@
         sendMessage();
     }
 
-    // Prevent submission on Shift+Enter, submit on Enter
+    function autoResizeChatInput(el) {
+        if (!el) return;
+        el.style.height = '38px';
+        const newHeight = Math.min(el.scrollHeight, 110);
+        el.style.height = newHeight + 'px';
+    }
+
+    // Enter alone sends message. Ctrl+Enter or Shift+Enter changes line without sending message.
     function handleInputKeydown(e) {
-        if (e.key === 'Enter' && !e.shiftKey) {
+        if (e.key === 'Enter') {
+            if (e.shiftKey || e.ctrlKey) {
+                if (e.ctrlKey) {
+                    e.preventDefault();
+                    const start = this.selectionStart;
+                    const end = this.selectionEnd;
+                    const val = this.value;
+                    this.value = val.substring(0, start) + "\n" + val.substring(end);
+                    this.selectionStart = this.selectionEnd = start + 1;
+                    autoResizeChatInput(this);
+                }
+                // Allow line change without sending message
+                return;
+            }
             e.preventDefault();
             sendMessage();
         }
