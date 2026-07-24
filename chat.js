@@ -69,7 +69,13 @@
             align-items: center;
             justify-content: center;
             z-index: 99999;
-            transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.2s;
+            transition: transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.2s, opacity 0.2s;
+        }
+        /* Hide trigger while the panel is open */
+        .volga-chat-trigger.panel-open {
+            opacity: 0;
+            pointer-events: none;
+            transform: scale(0.6);
         }
         .volga-chat-trigger:hover {
             transform: scale(1.08);
@@ -108,8 +114,8 @@
             position: fixed;
             bottom: 92px;
             right: 24px;
-            width: 360px;
-            height: 520px;
+            width: min(360px, calc(100vw - 24px));
+            height: min(520px, calc(100vh - 120px));
             background: rgba(255, 255, 255, 0.82);
             backdrop-filter: blur(24px) saturate(180%);
             -webkit-backdrop-filter: blur(24px) saturate(180%);
@@ -762,6 +768,38 @@
             color: var(--primary, #3b82f6) !important;
         }
 
+        /* Create Group Button — UIverse circular plus */
+        .volga-chat-create-group-btn {
+            background: none;
+            border: none;
+            padding: 2px;
+            cursor: pointer;
+            outline: none;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.3s ease;
+            border-radius: 50%;
+        }
+        .volga-chat-create-group-btn:hover {
+            transform: rotate(90deg);
+        }
+        .volga-chat-create-group-btn svg {
+            stroke: #60a5fa;   /* blue-400 */
+            fill: none;
+            transition: fill 0.3s ease, stroke 0.3s ease;
+        }
+        .volga-chat-create-group-btn:hover svg {
+            fill: #1e3a8a;     /* blue-800 */
+            stroke: #60a5fa;
+        }
+        .volga-chat-create-group-btn:active svg {
+            stroke: #bfdbfe;   /* blue-200 */
+            fill: #2563eb;     /* blue-600 */
+            transition: none;
+        }
+
         /* Custom Alert Modal */
         .volga-chat-alert-modal {
             position: fixed;
@@ -842,17 +880,22 @@
             display: none;
         }
         @media (max-width: 576px) {
+            /* ════════════════════════════════════════════════
+               iOS-NATIVE MOBILE CHAT DESIGN
+               ════════════════════════════════════════════════ */
+
+            /* ── Backdrop ── */
             .volga-chat-backdrop {
                 display: block;
                 position: fixed;
                 top: 0; left: 0; right: 0; bottom: 0;
-                background: rgba(15, 23, 42, 0.35);
-                backdrop-filter: blur(8px);
-                -webkit-backdrop-filter: blur(8px);
+                background: rgba(0, 0, 0, 0.4);
+                backdrop-filter: blur(4px);
+                -webkit-backdrop-filter: blur(4px);
                 z-index: 99997;
                 opacity: 0;
                 pointer-events: none;
-                transition: opacity 0.25s ease;
+                transition: opacity 0.3s ease;
             }
             .volga-chat-backdrop.active {
                 opacity: 1;
@@ -863,6 +906,301 @@
                 position: fixed;
                 width: 100%;
                 height: 100%;
+            }
+
+            /* ── iOS system font override for entire panel ── */
+            #volga-chat-panel, #volga-chat-panel * {
+                font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', 'Helvetica Neue', sans-serif !important;
+            }
+
+            /* ── Trigger Button ── */
+            .volga-chat-trigger {
+                bottom: 20px;
+                right: 20px;
+                width: 56px;
+                height: 56px;
+            }
+
+            /* ── Chat Panel — iOS bottom sheet ── */
+            .volga-chat-panel {
+                width: 100% !important;
+                max-width: 100% !important;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                height: 92vh !important;
+                max-height: 92vh !important;
+                border-radius: 14px 14px 0 0;
+                background: #f2f2f7 !important;
+                backdrop-filter: none !important;
+                -webkit-backdrop-filter: none !important;
+                transform: translateY(100%);
+                transition: transform 0.38s cubic-bezier(0.32, 0.72, 0, 1);
+                box-shadow: 0 -2px 20px rgba(0, 0, 0, 0.18);
+                border: none;
+            }
+            .volga-chat-panel.open {
+                transform: translateY(0);
+            }
+
+            /* ── iOS Drag Handle ── */
+            .volga-chat-panel::before {
+                content: '';
+                display: block;
+                width: 36px;
+                height: 5px;
+                background: rgba(60, 60, 67, 0.3);
+                border-radius: 3px;
+                margin: 10px auto 0;
+                flex-shrink: 0;
+            }
+
+            /* ── Panel Inbox Header ("Volga Messenger") ── */
+            .volga-chat-header {
+                padding: 6px 20px 14px;
+                background: rgba(242, 242, 247, 0.95) !important;
+                border-bottom: 0.5px solid rgba(60, 60, 67, 0.2) !important;
+            }
+            .volga-chat-title {
+                font-size: 1.15rem !important;
+                font-weight: 700 !important;
+                letter-spacing: -0.4px !important;
+            }
+            .volga-chat-close-btn {
+                width: 30px;
+                height: 30px;
+                background: rgba(116, 116, 128, 0.12) !important;
+                border-radius: 50% !important;
+                color: #3a3a3c !important;
+            }
+            .volga-chat-close-btn svg {
+                width: 14px !important;
+                height: 14px !important;
+            }
+
+            /* ── Tabs ── */
+            .volga-chat-tabs {
+                margin: 10px 16px 6px !important;
+            }
+            .volga-chat-tab {
+                font-size: 0.88rem !important;
+                padding: 8px 12px !important;
+            }
+
+            /* ── Search Bar ── */
+            .volga-chat-search-bar {
+                padding: 10px 16px !important;
+                background: #f2f2f7 !important;
+            }
+            .volga-chat-search-input {
+                font-size: 0.95rem !important;
+                padding: 10px 16px !important;
+                border-radius: 12px !important;
+                background: rgba(116, 116, 128, 0.12) !important;
+                border: none !important;
+                color: #1c1c1e !important;
+                line-height: 1.4 !important;
+                min-height: 38px;           /* was height: 38px — was clipping text */
+            }
+            .volga-chat-search-input::placeholder {
+                color: rgba(60, 60, 67, 0.45) !important;
+            }
+
+            /* ── User List Items ── */
+            .volga-chat-user-item {
+                padding: 13px 20px !important;
+                min-height: 64px;
+                background: white;
+                margin: 0;
+                border-bottom: 0.5px solid rgba(60, 60, 67, 0.15) !important;
+            }
+            .volga-chat-user-avatar {
+                width: 46px !important;
+                height: 46px !important;
+            }
+            .volga-chat-user-name {
+                font-size: 0.97rem !important;
+                font-weight: 600 !important;
+                color: #1c1c1e !important;
+                line-height: 1.3 !important;
+            }
+            .volga-chat-user-role-badge {
+                font-size: 0.65rem !important;
+                line-height: 1.4 !important;
+            }
+            .volga-chat-user-time {
+                font-size: 0.75rem !important;
+                color: rgba(60, 60, 67, 0.6) !important;
+                line-height: 1.4 !important;
+            }
+            .volga-chat-user-snippet {
+                font-size: 0.85rem !important;
+                color: rgba(60, 60, 67, 0.6) !important;
+                line-height: 1.45 !important;
+            }
+            .volga-chat-user-snippet.unread {
+                color: #1c1c1e !important;
+                font-weight: 600 !important;
+            }
+
+            /* ── Chat Window Screen ── */
+            .volga-chat-window-screen {
+                background: #ffffff !important;
+            }
+
+            /* ── Chat Window Header (name + back + avatar) ── */
+            .volga-chat-window-header {
+                padding: 10px 16px 10px 6px !important;
+                min-height: 56px;
+                background: rgba(242, 242, 247, 0.95) !important;
+                border-bottom: 0.5px solid rgba(60, 60, 67, 0.2) !important;
+                backdrop-filter: blur(20px);
+                -webkit-backdrop-filter: blur(20px);
+            }
+            .volga-chat-back-btn {
+                width: 44px !important;
+                height: 44px !important;
+                padding: 10px 8px !important;
+                color: #007aff !important;
+            }
+            .volga-chat-back-btn svg {
+                width: 20px !important;
+                height: 20px !important;
+                stroke-width: 2.8 !important;
+            }
+            .volga-chat-window-avatar {
+                width: 36px !important;
+                height: 36px !important;
+            }
+            .volga-chat-window-title {
+                font-size: 1rem !important;
+                font-weight: 700 !important;
+                color: #1c1c1e !important;
+                letter-spacing: -0.2px !important;
+                line-height: 1.25 !important;
+            }
+            .volga-chat-window-subtitle {
+                font-size: 0.72rem !important;
+                color: rgba(60, 60, 67, 0.55) !important;
+                font-weight: 500 !important;
+                letter-spacing: 0.2px !important;
+                line-height: 1.4 !important;
+            }
+            .volga-chat-group-settings-trigger {
+                width: 44px !important;
+                height: 44px !important;
+                color: #007aff !important;
+            }
+
+            /* ── Message Area ── */
+            .volga-chat-messages-container {
+                padding: 14px 16px !important;
+                background: #ffffff !important;
+            }
+
+            /* ── Message Bubbles ── */
+            .volga-chat-msg-bubble-row {
+                max-width: 82% !important;
+            }
+            .volga-chat-msg-bubble {
+                padding: 10px 14px !important;
+                font-size: 0.95rem !important;
+                line-height: 1.55 !important;  /* was 1.4 — too tight for SF Pro */
+            }
+            .volga-chat-msg-bubble-row.me .volga-chat-msg-bubble {
+                border-radius: 20px 20px 4px 20px !important;
+                background: #007aff !important;
+            }
+            .volga-chat-msg-bubble-row.others .volga-chat-msg-bubble {
+                border-radius: 20px 20px 20px 4px !important;
+                background: #e5e5ea !important;
+                color: #1c1c1e !important;
+                border: none !important;
+            }
+            .volga-chat-msg-time {
+                font-size: 0.68rem !important;
+                color: rgba(60, 60, 67, 0.5) !important;
+                line-height: 1.4 !important;
+            }
+
+            /* ── iOS-style Input Bar ── */
+            .volga-chat-input-bar {
+                padding: 10px 14px !important;
+                padding-bottom: max(14px, env(safe-area-inset-bottom)) !important;
+                background: rgba(242, 242, 247, 0.98) !important;
+                border-top: 0.5px solid rgba(60, 60, 67, 0.2) !important;
+                gap: 10px !important;
+                min-height: 58px;
+            }
+            .volga-chat-input {
+                font-size: 0.97rem !important;
+                padding: 10px 16px !important;
+                border-radius: 22px !important;
+                background: #ffffff !important;
+                border: 1px solid rgba(60, 60, 67, 0.2) !important;
+                color: #1c1c1e !important;
+                min-height: 42px;
+            }
+            .volga-chat-input::placeholder {
+                color: rgba(60, 60, 67, 0.4) !important;
+            }
+            .volga-chat-input:focus {
+                border-color: #007aff !important;
+                box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.12) !important;
+            }
+            .volga-chat-attach-btn {
+                width: 42px !important;
+                height: 42px !important;
+                color: #007aff !important;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+            .volga-chat-attach-btn svg {
+                width: 22px !important;
+                height: 22px !important;
+            }
+            .volga-chat-send-btn {
+                width: 38px !important;
+                height: 38px !important;
+                flex-shrink: 0;
+                background: #007aff !important;
+                box-shadow: none !important;
+            }
+            .volga-chat-send-btn svg {
+                width: 17px !important;
+                height: 17px !important;
+            }
+
+            /* ── Group / Alert Modals ── */
+            .volga-chat-group-modal {
+                padding: 16px !important;
+                align-items: center !important;
+            }
+            .volga-chat-group-modal-content {
+                max-width: 100% !important;
+                width: 100% !important;
+                padding: 22px 20px !important;
+                border-radius: 16px !important;
+                background: #ffffff !important;
+            }
+            .volga-chat-group-modal-title {
+                font-size: 1.05rem !important;
+            }
+            .volga-chat-alert-box {
+                width: 92% !important;
+                max-width: 320px !important;
+                border-radius: 14px !important;
+                background: rgba(242, 242, 247, 0.98) !important;
+            }
+            .volga-chat-alert-text {
+                font-size: 0.95rem !important;
+                line-height: 1.5 !important;
+            }
+            .volga-chat-alert-btn {
+                font-size: 0.88rem !important;
+                padding: 10px 20px !important;
+                border-radius: 10px !important;
             }
         }
     `;
@@ -897,9 +1235,18 @@
                     <div class="volga-chat-search-bar" style="display:flex;gap:8px;align-items:center;">
                         <input type="text" id="volga-chat-search" class="volga-chat-search-input" placeholder="Search coworkers...">
                         <button id="volga-chat-create-group-trigger" class="volga-chat-create-group-btn" style="display:none;" title="Create Group">
-                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
-                                <line x1="12" y1="5" x2="12" y2="19"></line>
-                                <line x1="5" y1="12" x2="19" y2="12"></line>
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                width="28px"
+                                height="28px"
+                                viewBox="0 0 24 24"
+                            >
+                                <path
+                                    d="M12 22C17.5 22 22 17.5 22 12C22 6.5 17.5 2 12 2C6.5 2 2 6.5 2 12C2 17.5 6.5 22 12 22Z"
+                                    stroke-width="1.5"
+                                ></path>
+                                <path d="M8 12H16" stroke-width="1.5"></path>
+                                <path d="M12 16V8" stroke-width="1.5"></path>
                             </svg>
                         </button>
                     </div>
@@ -1121,10 +1468,12 @@
     // Toggle Chat Panel visibility
     function toggleChatPanel() {
         const panel = document.getElementById('volga-chat-panel');
+        const trigger = document.getElementById('volga-chat-trigger');
         const backdrop = document.getElementById('volga-chat-backdrop');
         isPanelOpen = !isPanelOpen;
         if (isPanelOpen) {
             panel.classList.add('open');
+            if (trigger) trigger.classList.add('panel-open');    // hide trigger
             if (backdrop) backdrop.classList.add('active');
             
             // Lock body scroll on mobile
@@ -1134,6 +1483,7 @@
             renderInboxList();
         } else {
             panel.classList.remove('open');
+            if (trigger) trigger.classList.remove('panel-open'); // show trigger
             if (backdrop) backdrop.classList.remove('active');
             document.body.classList.remove('volga-chat-open');
         }
