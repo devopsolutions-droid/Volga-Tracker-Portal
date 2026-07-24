@@ -1387,8 +1387,8 @@
         wrapper.innerHTML = chatHtml;
         document.body.appendChild(wrapper);
 
-        // Request browser notification permissions
-        requestNotificationPermission();
+        // Request browser notification permissions (Disabled auto-prompt per user request)
+        // requestNotificationPermission();
 
         // Bind events
         document.getElementById('volga-chat-trigger').addEventListener('click', toggleChatPanel);
@@ -1561,13 +1561,7 @@
     }
 
     function requestNotificationPermission() {
-        if ('Notification' in window && Notification.permission === 'default') {
-            Notification.requestPermission().then(permission => {
-                if (permission === 'granted') {
-                    console.log("Web notification permission granted.");
-                }
-            });
-        }
+        // Disabled: do not prompt user for notification permissions automatically
     }
 
     function showWebNotification(senderName, text, chatDocId = null) {
